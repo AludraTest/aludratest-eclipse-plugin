@@ -1,0 +1,98 @@
+<functionLibrary>
+	<category name="String functions">
+		<function name="indexOf" 
+			description="Returns the index of the first occurrence of a specified text in a string." 
+			scriptToInsert="'ExampleText'.indexOf('Text')" />
+		<function name="lastIndexOf" 
+			description="Returns the index of the last occurrence of a specified text in a string." 
+			scriptToInsert="'exampleText'.lastIndexOf('ex')" />
+		<function name="search" 
+			description="Returns the index of the first occurrence of a regular expression in a string." 
+			scriptToInsert="'ExampleText'.search('T|t')" />
+		<function name="substring" 
+			description="Returns the substring of a string. Parameters are start and end index. The character at the end index itself is not included." 
+			scriptToInsert="'Extract Me'.substring(3, 6)" />
+		<function name="replace" 
+			description="Replaces the first occurrence of a specified value with another value in a string." 
+			scriptToInsert="'ExampleText'.replace('Text', 'Word')" />
+		<function name="toUpperCase" 
+			description="Converts a string to upper case." 
+			scriptToInsert="'ExampleText'.toUpperCase()" />
+		<function name="toLowerCase" 
+			description="Converts a string to lower case." 
+			scriptToInsert="'ExampleText'.toLowerCase()" />
+		<function name="concat" 
+			description="Concatenates two or more strings." 
+			scriptToInsert="'Example'.concat(' ', 'Text')" />
+		<function name="charAt" 
+			description="Returns the character at a specified index (0-based) in a string." 
+			scriptToInsert="'ExampleText'.charAt(0)" />
+		<!-- Not supported in used version of Rhino engine. 
+		<function name="trim" 
+			description="Removes whitespace from both ends of a string." 
+			scriptToInsert="' ExampleText '.trim()" />
+		 -->
+	</category>
+	
+	<category name="Date functions">
+		<function name="addDaysToNow" 
+			description="Adds the given amount of days to the current timestamp." 
+			scriptToInsert="addDaysToNow(7)" />
+		<function name="addHoursToNow" 
+			description="Adds the given amount of hours to the current timestamp." 
+			scriptToInsert="addHoursToNow(3)" />
+		<function name="Date" 
+			description="Returns the current date and time." 
+			scriptToInsert="new Date()" />
+		<function name="getFullYear" 
+			description="Returns the year of a date." 
+			scriptToInsert="new Date().getFullYear()" />
+		<function name="getMonth" 
+			description="Returns the month of a date (0-11)." 
+			scriptToInsert="new Date().getMonth()" />
+		<function name="getDate" 
+			description="Returns the day of month of a date (1-31)." 
+			scriptToInsert="new Date().getDate()" />
+		<function name="getDay" 
+			description="Returns the day of week of a date (0=sunday, 6=saturday)." 
+			scriptToInsert="new Date().getDay()" />
+		<function name="getHours" 
+			description="Returns the hour of a date (0-23)." 
+			scriptToInsert="new Date().getHours()" />
+		<function name="getMinutes" 
+			description="Returns the minutes of the hour of a date (0-59)." 
+			scriptToInsert="new Date().getMinutes()" />
+		<function name="parse" 
+			description="Parses a given date string." 
+			scriptToInsert="new Date(Date.parse('2015-01-20'))" />
+	</category>
+	
+	<category name="Mathematical functions">
+		<function name="abs" 
+			description="Returns the absolute value of a value." 
+			scriptToInsert="Math.abs(-23.5)" />
+		<function name="ceil" 
+			description="Rounds a given value upwards to the nearest integer." 
+			scriptToInsert="Math.ceil(22.4)" />
+		<function name="floor" 
+			description="Rounds a given value downwards to the nearest integer." 
+			scriptToInsert="Math.floor(23.6)" />
+		<function name="round" 
+			description="Rounds a given value to the nearest integer." 
+			scriptToInsert="Math.round(22.5)" />
+		<function name="max" 
+			description="Returns the maximum value of multiple values." 
+			scriptToInsert="Math.max(23, 42, 11)" />
+		<function name="min" 
+			description="Returns the minimum value of multiple values." 
+			scriptToInsert="Math.min(23, 42, 11)" />
+		<function name="random" 
+			description="Returns a random number between 0 and 1 (exclusive)." 
+			scriptToInsert="Math.random()" />
+		<function name="random (integer)" 
+			description="Returns a random integer number between 0 and the used maximum value (exclusive)." 
+			scriptToInsert="Math.floor(Math.random() * 24)" />
+	</category>
+
+</functionLibrary>
+

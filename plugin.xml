@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Test Data Editor"
+            extensions="testdata.xml"
+            icon="icons/testdata.gif"
+            contributorClass="org.aludratest.eclipse.vde.internal.editors.TestDataEditorContributor"
+            class="org.aludratest.eclipse.vde.internal.editors.TestDataEditor"
+            id="org.aludratest.eclipse.vde.editors.TestDataEditor">
+         <contentTypeBinding
+               contentTypeId="org.aludratest.eclipse.vde.testData">
+         </contentTypeBinding>
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            name="AludraTest"
+            id="org.aludratest.eclipse.vde">
+      </category>
+      <wizard
+            name="Test Data"
+            icon="icons/testdata.gif"
+            category="org.aludratest.eclipse.vde"
+            class="org.aludratest.eclipse.vde.internal.wizards.NewTestDataWizard"
+            id="org.aludratest.eclipse.vde.wizards.NewTestDataWizard">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.jdt.ui.queryParticipants">
+      <queryParticipant
+            class="org.aludratest.eclipse.vde.internal.refactor.JavaQueryParticipant"
+            id="org.aludratest.eclipse.vde.dataClassReferenceParticipant"
+            name="Test Data Class Reference Searcher"
+            nature="org.eclipse.jdt.core.javanature">
+      </queryParticipant>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.xml"
+            file-extensions="xml"
+            id="org.aludratest.eclipse.vde.testData"
+            name="Test Data"
+            priority="normal">
+         <describer
+               class="org.aludratest.eclipse.vde.internal.content.TestDataContentDescriber">
+         </describer>
+      </content-type>
+   </extension>
+   <extension
+         point="org.eclipse.ltk.core.refactoring.renameParticipants">
+      <renameParticipant
+            class="org.aludratest.eclipse.vde.internal.refactor.RenameTypeParticipant"
+            id="org.aludratest.eclipse.vde.dataClassRenameParticipant"
+            name="Rename Data Class in XML Test Data">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="org.eclipse.jdt.core.javanature"/>
+                </iterate>
+              </with>
+              <with variable="element">
+                <instanceof value="org.eclipse.jdt.core.IType"/>
+              </with>
+            </enablement>
+      </renameParticipant>
+      <renameParticipant
+            class="org.aludratest.eclipse.vde.internal.refactor.RenameFieldParticipant"
+            id="org.aludratest.eclipse.vde.dataClassFieldRenameParticipant"
+            name="Rename Data Class field in XML Test Data">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="org.eclipse.jdt.core.javanature"/>
+                </iterate>
+              </with>
+              <with variable="element">
+                <instanceof value="org.eclipse.jdt.core.IField"/>
+              </with>
+            </enablement>
+      </renameParticipant>
+   </extension>
+   <extension
+         point="org.eclipse.ltk.core.refactoring.moveParticipants">
+      <moveParticipant
+            class="org.aludratest.eclipse.vde.internal.refactor.RefactorMoveParticipant"
+            id="org.aludratest.eclipse.vde.dataClassMoveParticipant"
+            name="Update Data Class in XML Test Data">
+            <enablement>
+              <with variable="affectedNatures">
+                <iterate operator="or">
+                  <equals value="org.eclipse.jdt.core.javanature"/>
+                </iterate>
+              </with>
+              <with variable="element">
+                <instanceof value="org.eclipse.jdt.core.IType"/>
+              </with>
+            </enablement>
+      </moveParticipant>
+   </extension>
+   <extension
+         point="org.eclipse.wst.xml.core.catalogContributions">
+      <catalogContribution>
+         <system
+               systemId="http://aludratest.github.io/aludratest/schema/1.0/testdata.xsd"
+               uri="xsdSchema/testdata.xsd">
+         </system>
+         <system
+               systemId="http://aludratest.github.io/aludratest/schema/draft/testdata.xsd"
+               uri="xsdSchema/testdata.xsd">
+         </system>
+      </catalogContribution>
+   </extension>
+
+</plugin>
