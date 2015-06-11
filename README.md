@@ -2,6 +2,11 @@
 
 AludraTest Visual Data Editor Plug-In for Eclipse.
 
+## Build Status
+[![Build Status](https://travis-ci.org/AludraTest/aludratest-eclipse-plugin.svg?branch=master)](https://travis-ci.org/AludraTest/aludratest-eclipse-plugin)
+
+## Description
+
 This Plug-In enables Developers and Test Designers to edit Test Data XML files introduced with AludraTest 3.0.0. It consists of a Visual Data Editor to edit Test Data metadata as well as contents, and Refactoring Participants updating XML files when e.g. field names of Data classes or Data class names change.
 
 Currently, the Plug-In is in a Beta stage and contains many TODOs. It is already usable and in use. But expect issues and unexpected behaviour when using. Please report issues using the GitHub issue tracker.
