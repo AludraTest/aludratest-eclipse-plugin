@@ -262,8 +262,6 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 
 				((SegmentFieldsContentProvider) tvFields.getContentProvider()).checkFieldCurrentness(segment, entry);
 				tvFields.update(element, null);
-
-				markDirty();
 			}
 
 			@Override
