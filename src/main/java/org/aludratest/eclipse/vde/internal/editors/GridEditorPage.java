@@ -38,6 +38,7 @@ import org.eclipse.nebula.widgets.nattable.config.IEditableRule;
 import org.eclipse.nebula.widgets.nattable.data.IDataProvider;
 import org.eclipse.nebula.widgets.nattable.data.convert.IDisplayConverter;
 import org.eclipse.nebula.widgets.nattable.edit.EditConfigAttributes;
+import org.eclipse.nebula.widgets.nattable.edit.editor.ICellEditor;
 import org.eclipse.nebula.widgets.nattable.grid.data.DefaultCornerDataProvider;
 import org.eclipse.nebula.widgets.nattable.grid.layer.ColumnHeaderLayer;
 import org.eclipse.nebula.widgets.nattable.grid.layer.CornerLayer;
@@ -591,6 +592,15 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		@Override
 		public void run() {
+			// if a cell editor is active, pass to it
+			if (grid != null && grid.getActiveCellEditor() != null) {
+				ICellEditor editor = grid.getActiveCellEditor();
+				if (editor instanceof GridFieldValueCellEditor) {
+					((GridFieldValueCellEditor) editor).copy();
+				}
+				return;
+			}
+
 			if (selectionLayer != null) {
 				ClipboardUtil.copyToClipboard(clipboard, selectionLayer.getSelectedCells(),
 						new UnsafeConverter<ILayerCell, ITestDataFieldValue>(ILayerCell.class, ITestDataFieldValue.class) {
@@ -622,6 +632,15 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		@Override
 		public void run() {
+			// if a cell editor is active, pass to it
+			if (grid != null && grid.getActiveCellEditor() != null) {
+				ICellEditor editor = grid.getActiveCellEditor();
+				if (editor instanceof GridFieldValueCellEditor) {
+					((GridFieldValueCellEditor) editor).paste();
+				}
+				return;
+			}
+
 			if (selectionLayer != null) {
 				try {
 					ClipboardUtil.pasteFromClipboard(clipboard, selectionLayer, new PasteStringValueAcceptor() {

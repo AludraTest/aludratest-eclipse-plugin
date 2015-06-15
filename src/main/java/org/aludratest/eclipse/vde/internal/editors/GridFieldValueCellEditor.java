@@ -53,4 +53,12 @@ public class GridFieldValueCellEditor extends AbstractCellEditor {
 		return displayValue;
 	}
 
+	public void paste() {
+		editorDelegate.performPaste();
+	}
+
+	public void copy() {
+		editorDelegate.performCopy();
+	}
+
 }

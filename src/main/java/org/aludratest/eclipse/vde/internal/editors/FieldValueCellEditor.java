@@ -127,6 +127,20 @@ public class FieldValueCellEditor extends DialogCellEditor {
 	}
 
 	@Override
+	public void performPaste() {
+		if (txtValue != null && txtValue.getEditable()) {
+			txtValue.paste();
+		}
+	}
+
+	@Override
+	public void performCopy() {
+		if (txtValue != null && txtValue.getEditable()) {
+			txtValue.copy();
+		}
+	}
+
+	@Override
 	protected Object openDialogBox(Control cellEditorWindow) {
 		Object value = getValue();
 
