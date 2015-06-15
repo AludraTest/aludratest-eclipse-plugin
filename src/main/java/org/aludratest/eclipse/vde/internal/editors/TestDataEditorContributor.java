@@ -69,6 +69,19 @@ public class TestDataEditorContributor extends MultiPageEditorActionBarContribut
 					getAction(editor, IDEActionFactory.BOOKMARK.getId()));
 			actionBars.updateActionBars();
 		}
+		else if (actionBars != null) {
+			actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.UNDO.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.REDO.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.CUT.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.SELECT_ALL.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.FIND.getId(), null);
+			actionBars.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(), null);
+			actionBars.updateActionBars();
+
+		}
 	}
 
 	private void createActions() {
