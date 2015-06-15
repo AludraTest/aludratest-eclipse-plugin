@@ -277,7 +277,8 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 					return Integer.valueOf(Arrays.asList(TestDataFieldType.values()).indexOf(meta.getType()));
 				}
 				if ("pattern".equals(property)) {
-					return meta.getFormatterPattern();
+					String pattern = meta.getFormatterPattern();
+					return pattern == null ? "" : pattern;
 				}
 				if ("subtype".equals(property)) {
 					return meta.getSubTypeClassName();
