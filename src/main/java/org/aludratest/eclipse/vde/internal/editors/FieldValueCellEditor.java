@@ -13,6 +13,8 @@ import org.aludratest.eclipse.vde.model.ITestDataFieldValue;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.DialogCellEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
@@ -64,14 +66,7 @@ public class FieldValueCellEditor extends DialogCellEditor {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.keyCode == 13) {
-					if (valueToSet != null) {
-						IFieldValue value = fieldValue.getFieldValue();
-						if (value.getValueType() == IFieldValue.TYPE_STRING) {
-							((IStringValue) value).setValue(valueToSet);
-						}
-					}
-					fireApplyEditorValue();
-					deactivate();
+					applyValueAndDeactivate();
 				}
 			}
 		});
@@ -105,14 +100,30 @@ public class FieldValueCellEditor extends DialogCellEditor {
 	}
 
 	@Override
-	public void setFocus() {
+	protected void doSetFocus() {
 		if (txtValue.getEditable()) {
 			txtValue.selectAll();
 			txtValue.setFocus();
 		}
 		else {
-			super.setFocus();
+			super.doSetFocus();
 		}
+		txtValue.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				FieldValueCellEditor.this.focusLost();
+			}
+		});
+	}
+
+	@Override
+	protected void focusLost() {
+		applyValueAndDeactivate();
+	}
+
+	@Override
+	public void deactivate() {
+		super.deactivate();
 	}
 
 	@Override
@@ -165,6 +176,17 @@ public class FieldValueCellEditor extends DialogCellEditor {
 		}
 
 		return null;
+	}
+
+	private void applyValueAndDeactivate() {
+		if (valueToSet != null) {
+			IFieldValue value = fieldValue.getFieldValue();
+			if (value.getValueType() == IFieldValue.TYPE_STRING) {
+				((IStringValue) value).setValue(valueToSet);
+			}
+		}
+		fireApplyEditorValue();
+		deactivate();
 	}
 
 	static void setFieldValue(ITestDataFieldValue field, Object value) {
