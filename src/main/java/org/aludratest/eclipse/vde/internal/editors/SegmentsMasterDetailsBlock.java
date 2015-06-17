@@ -352,4 +352,8 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 
 	}
 
+	public void updateMasterTreeView() {
+		tvSegments.refresh();
+	}
+
 }

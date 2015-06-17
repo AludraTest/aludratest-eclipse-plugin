@@ -163,6 +163,8 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 				// TODO prohibit "." in name
 				if (segment != null) {
 					segment.setName(((Text) e.widget).getText());
+					// update Master view
+					masterDetailsBlock.updateMasterTreeView();
 				}
 			}
 		});
