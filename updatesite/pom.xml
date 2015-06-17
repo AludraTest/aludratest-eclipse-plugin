@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.aludratest.eclipse</groupId>
 	<artifactId>org.aludratest.eclipse.vde.site</artifactId>
-	<version>0.2.0.qualifier</version>
+	<version>0.3.0.qualifier</version>
 	<name>AludraTest Eclipse Visual Data Editor P2 Update Site</name>
 	<description>Generates the P2 Update Site for AludraTest Eclipse Visual Data Editor.</description>
 
