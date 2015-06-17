@@ -67,6 +67,10 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 		tvSegments.setSelection(new StructuredSelection(segment));
 	}
 
+	void updateMasterTreeView() {
+		tvSegments.refresh();
+	}
+
 	@Override
 	protected void createMasterPart(final IManagedForm managedForm, Composite parent) {
 		this.managedForm = managedForm;
@@ -350,10 +354,6 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 			return name;
 		}
 
-	}
-
-	public void updateMasterTreeView() {
-		tvSegments.refresh();
 	}
 
 }
