@@ -6,6 +6,7 @@ import java.util.List;
 import org.aludratest.eclipse.vde.internal.TestDataCore;
 import org.aludratest.eclipse.vde.internal.VdeImage;
 import org.aludratest.eclipse.vde.internal.VdePlugin;
+import org.aludratest.eclipse.vde.internal.util.ArrayUtil;
 import org.aludratest.eclipse.vde.model.ITestData;
 import org.aludratest.eclipse.vde.model.ITestDataFieldMetadata;
 import org.aludratest.eclipse.vde.model.ITestDataMetadata;
@@ -17,6 +18,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -104,7 +107,11 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 		cpoButtons.setLayout(gl);
 
 		Button btnAdd = managedForm.getToolkit().createButton(cpoButtons, "Add...", SWT.PUSH);
+		btnAdd.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
 		final Button btnRemove = managedForm.getToolkit().createButton(cpoButtons, "Delete", SWT.PUSH);
+		btnRemove.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
+		final Button btnDuplicate = managedForm.getToolkit().createButton(cpoButtons, "Duplicate", SWT.PUSH);
+		btnDuplicate.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
 		
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -119,12 +126,20 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 			}
 		});
 		btnRemove.setEnabled(false);
+		btnDuplicate.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleDuplicateSegment();
+			}
+		});
+		btnDuplicate.setEnabled(false);
 
 		tvSegments.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				managedForm.fireSelectionChanged(sectionPart, event.getSelection());
 				btnRemove.setEnabled(!event.getSelection().isEmpty());
+				btnDuplicate.setEnabled(!event.getSelection().isEmpty());
 			}
 		});
 
@@ -252,6 +267,53 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 		}
 	}
 
+	private void handleDuplicateSegment() {
+		IStructuredSelection selection = (IStructuredSelection) tvSegments.getSelection();
+		if (!selection.isEmpty()) {
+			ITestDataSegmentMetadata segment = (ITestDataSegmentMetadata) selection.getFirstElement();
+			ITestDataMetadata meta = ((ITestData) tvSegments.getInput()).getMetaData();
+
+			// ask for new name
+			InputDialog dlg = new InputDialog(getEditor().getSite().getShell(), "New segment name",
+					"Please enter the name for the segment's copy", segment.getName(), new SegmentNameValidator(meta));
+			if (dlg.open() == InputDialog.CANCEL) {
+				return;
+			}
+
+			String newName = dlg.getValue();
+			copySegment(segment, meta, newName);
+
+			tvSegments.refresh();
+		}
+	}
+
+	private void copySegment(ITestDataSegmentMetadata segment, ITestDataMetadata meta, String newName) {
+		meta.addSegment(newName, segment.getDataClassName());
+		ITestDataSegmentMetadata newSegment = ArrayUtil.lastElement(meta.getSegments());
+
+		for (ITestDataFieldMetadata field : segment.getFields()) {
+			newSegment.addField();
+			ITestDataFieldMetadata newField = ArrayUtil.lastElement(newSegment.getFields());
+			newField.setName(field.getName());
+			newField.setType(field.getType());
+			newField.setSubTypeClassName(field.getSubTypeClassName());
+			newField.setFormatterPattern(field.getFormatterPattern());
+			newField.setFormatterLocale(field.getFormatterLocale());
+		}
+
+		// find sub-segments
+		String subNameStart = segment.getName() + ".";
+		for (ITestDataSegmentMetadata seg : meta.getSegments()) {
+			String segName = seg.getName();
+			if (segName.startsWith(subNameStart)) {
+				String subName = segName.substring(subNameStart.length());
+				if (!subName.contains(".")) {
+					copySegment(seg, meta, newName + "." + subName);
+				}
+			}
+		}
+	}
+
 
 	private static class TestDataSegmentsContentProvider implements ITreeContentProvider {
 
@@ -352,6 +414,33 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 
 			// TODO perhaps include class name somehow? Tooltip?
 			return name;
+		}
+	}
+
+	private static class SegmentNameValidator implements IInputValidator {
+
+		private List<String> existingNames = new ArrayList<String>();
+
+		public SegmentNameValidator(ITestDataMetadata meta) {
+			for (ITestDataSegmentMetadata seg : meta.getSegments()) {
+				existingNames.add(seg.getName());
+			}
+		}
+
+		@Override
+		public String isValid(String newText) {
+			if ("".equals(newText)) {
+				return "Please enter a segment name";
+			}
+			if (!newText.trim().equals(newText)) {
+				return "Name must not start or end with a space";
+			}
+
+			if (existingNames.contains(newText)) {
+				return "There already is a segment with this name";
+			}
+
+			return null;
 		}
 
 	}
