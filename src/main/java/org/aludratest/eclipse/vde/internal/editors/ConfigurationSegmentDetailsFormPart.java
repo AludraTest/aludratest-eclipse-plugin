@@ -245,8 +245,8 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 			for (IStringValue sv : values) {
 				if (sb.length() > 1) {
 					sb.append(", ");
-					sb.append(sv.getValue());
 				}
+				sb.append(sv.getValue());
 			}
 			sb.append("]");
 			return sb.toString();

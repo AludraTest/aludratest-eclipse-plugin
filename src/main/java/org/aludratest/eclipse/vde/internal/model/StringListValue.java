@@ -1,5 +1,6 @@
 package org.aludratest.eclipse.vde.internal.model;
 
+import org.aludratest.eclipse.vde.internal.util.ArrayUtil;
 import org.aludratest.eclipse.vde.model.IStringListValue;
 import org.aludratest.eclipse.vde.model.IStringValue;
 
@@ -34,6 +35,7 @@ public class StringListValue extends AbstractModelNode implements IStringListVal
 	@Override
 	public void addValue(String value) {
 		appendChildElement(VALUE);
+		ArrayUtil.lastElement(getValues()).setValue(value);
 		IStringValue[] values = getValues();
 		values[values.length - 1].setValue(value);
 	}

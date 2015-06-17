@@ -203,8 +203,7 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 				for (IField field : dataType.getFields()) {
 					if (TestDataCore.isProperty(field)) {
 						segment.addField();
-						ITestDataFieldMetadata[] metaFields = segment.getFields();
-						ITestDataFieldMetadata metaField = metaFields[metaFields.length - 1];
+						ITestDataFieldMetadata metaField = ArrayUtil.lastElement(segment.getFields());
 						metaField.setName(field.getElementName());
 
 						TestDataCore.applyFieldType(field, metaField);

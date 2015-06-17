@@ -261,7 +261,9 @@ public final class TestDataCore {
 
 		if (fieldType != TestDataFieldType.STRING) {
 			metaField.setType(fieldType);
-			metaField.setSubTypeClassName(sb.toString());
+			if (fieldType != TestDataFieldType.STRING_LIST) {
+				metaField.setSubTypeClassName(sb.toString());
+			}
 		}
 	}
 
@@ -273,7 +275,7 @@ public final class TestDataCore {
 			// collection?
 			String collType = getCollectionType(javaField);
 			if (collType != null) {
-				if (String.class.getName().equals(collType)) {
+				if (String.class.getSimpleName().equals(collType)) {
 					return TestDataFieldType.STRING_LIST;
 				}
 				sbSubType.append(SignatureUtil.getFullyQualifiedType(javaField.getTypeRoot(), collType));
