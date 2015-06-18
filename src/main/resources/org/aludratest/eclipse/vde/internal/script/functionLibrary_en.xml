@@ -65,6 +65,9 @@
 		<function name="parse" 
 			description="Parses a given date string." 
 			scriptToInsert="new Date(Date.parse('2015-01-20'))" />
+		<function name="format"
+			description="Formats a Date to a string using a given format."
+			scriptToInsert="new Date().format('dd-mmm-yyyy HH:MM')" />
 	</category>
 	
 	<category name="Mathematical functions">
