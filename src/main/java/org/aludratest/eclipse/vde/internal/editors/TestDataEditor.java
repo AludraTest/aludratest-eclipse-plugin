@@ -13,9 +13,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
@@ -55,8 +53,6 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 	/** The model reflecting the current editor contents. */
 	private ITestData testData;
 
-	private boolean sourceDirty;
-
 	private int oldPageIndex = -1;
 
 	private DOMDocumentProvider documentProvider = new TestDataEditorDOMDocumentProvider();
@@ -79,16 +75,6 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 			addPage(visualEditPage = new VisualDataEditorPage(this));
 			addPage(gridPage = new GridEditorPage(this));
 			sourceEditorIndex = addPage(sourceEditor = new StructuredTextEditor(), getEditorInput());
-			getDocument().addDocumentListener(new IDocumentListener() {
-				@Override
-				public void documentChanged(DocumentEvent event) {
-					sourceDirty = true;
-				}
-
-				@Override
-				public void documentAboutToBeChanged(DocumentEvent event) {
-				}
-			});
 			setPageText(sourceEditorIndex, sourceEditor.getTitle());
 
 			// sync document internals
@@ -189,17 +175,14 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 
 	@Override
 	protected void pageChange(int newPageIndex) {
-		// check for update from the source code
-		if (testData == null || (oldPageIndex == sourceEditorIndex && sourceDirty)) {
-			if (newPageIndex == 0) { // TODO store index from addPage()
-				metadataPage.refreshContents();
-			}
-			if (newPageIndex == 1) {
-				visualEditPage.refreshContents();
-			}
-			if (newPageIndex == 2) {
-				gridPage.refreshContents();
-			}
+		if (newPageIndex == 0) { // TODO store index from addPage()
+			metadataPage.refreshContents();
+		}
+		if (newPageIndex == 1) {
+			visualEditPage.refreshContents();
+		}
+		if (newPageIndex == 2) {
+			gridPage.refreshContents();
 		}
 		
 		oldPageIndex = newPageIndex;

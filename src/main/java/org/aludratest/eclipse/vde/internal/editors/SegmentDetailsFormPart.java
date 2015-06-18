@@ -99,7 +99,7 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 		checkDataClassExists();
 	}
 
-	private void checkDataClassExists() {
+	private boolean checkDataClassExists() {
 		IJavaProject project = JavaCore.create(((IFileEditorInput) getEditor().getEditorInput()).getFile().getProject());
 
 		// optimization: Quick-check class to avoid full diff calculation
@@ -115,15 +115,17 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 			}
 			if (tp == null) {
 				cdDataClassWarning.show();
+				return false;
 			}
 			else {
 				cdDataClassWarning.hide();
+				return true;
 			}
 		}
 		else {
 			// TODO error marker?
 		}
-		
+		return false;
 	}
 
 	private TestDataEditor getEditor() {
@@ -190,7 +192,9 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 				if (segment != null) {
 					segment.setDataClassName(((Text) e.widget).getText());
 				}
-				checkDataClassExists();
+				if (checkDataClassExists()) {
+					tvFields.refresh();
+				}
 			}
 		});
 

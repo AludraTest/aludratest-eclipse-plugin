@@ -156,6 +156,10 @@ public class VisualDataEditorPage extends FormPage {
 				cvConfig.setSelection(new StructuredSelection());
 			}
 		}
+
+		if (configurationSegments != null) {
+			configurationSegments.refreshSegmentsList();
+		}
 	}
 
 	private final static IInputValidator CONFIG_NAME_VALIDATOR = new IInputValidator() {

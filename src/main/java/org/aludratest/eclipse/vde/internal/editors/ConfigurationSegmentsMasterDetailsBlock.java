@@ -169,6 +169,10 @@ public class ConfigurationSegmentsMasterDetailsBlock extends MasterDetailsBlock 
 		return getEditor().getTestDataModel();
 	}
 
+	void refreshSegmentsList() {
+		tvSegments.refresh();
+	}
+
 	private TestDataEditor getEditor() {
 		return ((VisualDataEditorPage) managedForm.getContainer()).getEditor();
 	}

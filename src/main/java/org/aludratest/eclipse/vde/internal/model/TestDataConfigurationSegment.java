@@ -35,6 +35,12 @@ public class TestDataConfigurationSegment extends AbstractModelNode implements I
 		return getChildObjects(TestDataFieldValue.class, new ITestDataFieldValue[0], FIELD_VALUES);
 	}
 
+	public void removeFieldValue(ITestDataFieldValue fieldValue) {
+		if (fieldValue instanceof AbstractModelNode) {
+			removeChild(FIELD_VALUES, (AbstractModelNode) fieldValue);
+		}
+	}
+
 	public void syncToMetadata(final ITestDataSegmentMetadata segmentMetadata) {
 		DOMOperation<Void> op = new DOMOperation<Void>() {
 			@Override

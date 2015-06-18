@@ -22,11 +22,17 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Widget;
@@ -107,7 +113,36 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 		tvFields.setContentProvider(new SegmentFieldsContentProvider());
 		tvFields.setLabelProvider(new SegmentFieldLabelProvider(getEditor().getTestDataModel().getMetaData(), false));
 
-		// TODO context menu to remove red fields
+		Menu contextMenu = new Menu(tbl);
+		final MenuItem mnuDelete = new MenuItem(contextMenu, SWT.PUSH);
+		mnuDelete.setText("Remove");
+		mnuDelete.setImage(VdeImage.DELETE.getImage());
+		contextMenu.addMenuListener(new MenuListener() {
+			@Override
+			public void menuShown(MenuEvent e) {
+				// get selected field; only enable if field is red
+				ITestDataFieldValue field = (ITestDataFieldValue) ((IStructuredSelection) tvFields.getSelection())
+						.getFirstElement();
+				if (field != null && (field instanceof TestDataFieldValue)
+						&& ((TestDataFieldValue) field).isNotReferencedInMetadata()) {
+					mnuDelete.setEnabled(true);
+				}
+				else {
+					mnuDelete.setEnabled(false);
+				}
+			}
+
+			@Override
+			public void menuHidden(MenuEvent e) {
+			}
+		});
+		mnuDelete.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleRemoveField();
+			}
+		});
+		tbl.setMenu(contextMenu);
 
 		// cell editors
 		tvFields.setCellEditors(new CellEditor[] { null, null, null, new FieldValueCellEditor(masterBlock, tvFields.getTable()) });
@@ -156,6 +191,16 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 		}
 
 		return field;
+	}
+
+	private void handleRemoveField() {
+		ITestDataFieldValue field = (ITestDataFieldValue) ((IStructuredSelection) tvFields.getSelection())
+				.getFirstElement();
+		if (field != null && (segment instanceof TestDataConfigurationSegment)) {
+			((TestDataConfigurationSegment) segment).removeFieldValue(field);
+		}
+		tvFields.refresh();
+		masterBlock.refreshSegmentsList();
 	}
 
 	private static class SegmentFieldsContentProvider implements IStructuredContentProvider {

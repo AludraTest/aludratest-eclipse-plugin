@@ -64,8 +64,8 @@ public class TestDataFieldValue extends AbstractModelNode implements ITestDataFi
 		final ITestDataFieldMetadata fieldMeta = getMetadata();
 		
 		if (fieldMeta == null) {
-			// TODO not good; missing metadata
-			return IFieldValue.TYPE_STRING;
+			// metadata has been removed; perform element analysis
+			return getFieldValueTypeFromDOM();
 		}
 
 		int valueType;
@@ -90,6 +90,30 @@ public class TestDataFieldValue extends AbstractModelNode implements ITestDataFi
 		}
 		
 		return valueType;
+	}
+
+	private int getFieldValueTypeFromDOM() {
+		DOMOperation<Integer> op = new DOMOperation<Integer>() {
+			@Override
+			public Integer perform(Element element) {
+				if (getChildElement(element, STRING_VALUES, false) != null) {
+					return IFieldValue.TYPE_STRING_LIST;
+				}
+				return IFieldValue.TYPE_STRING;
+			}
+
+			@Override
+			public boolean isEdit() {
+				return false;
+			}
+
+			@Override
+			public String getName() {
+				return "Determine field value type";
+			}
+		};
+
+		return performDOMOperation(op).intValue();
 	}
 
 	@Override
@@ -131,6 +155,7 @@ public class TestDataFieldValue extends AbstractModelNode implements ITestDataFi
 		return Boolean.TRUE.toString().equals(getAttributeValueOrNull(SCRIPT));
 	}
 
+	@Override
 	public void setScript(boolean script) {
 		setAttributeValue(SCRIPT, Boolean.toString(script));
 	}
