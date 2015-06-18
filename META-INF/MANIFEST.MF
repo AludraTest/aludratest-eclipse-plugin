@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AludraTest Visual Data Editor
 Bundle-SymbolicName: org.aludratest.eclipse.vde;singleton:=true
-Bundle-Version: 0.3.0.qualifier
+Bundle-Version: 0.4.0.qualifier
 Bundle-Activator: org.aludratest.eclipse.vde.internal.VdePlugin
 Bundle-Vendor: AludraTest.org
 Require-Bundle: org.eclipse.ui,
@@ -27,5 +27,6 @@ Bundle-ClassPath: lib/aludratest-3.0.0-SNAPSHOT.jar,
  lib/databene-commons-1.0.5.jar,
  lib/databene-formats-1.0.3.jar,
  .
-Import-Package: org.slf4j
+Import-Package: org.apache.commons.io,
+ org.slf4j
 Export-Package: org.aludratest.eclipse.vde.model
