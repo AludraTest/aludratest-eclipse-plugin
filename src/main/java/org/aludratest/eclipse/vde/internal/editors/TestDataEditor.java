@@ -1,17 +1,24 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.aludratest.eclipse.vde.internal.model.DOMDocumentProvider;
 import org.aludratest.eclipse.vde.internal.model.TestData;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfiguration;
 import org.aludratest.eclipse.vde.model.ITestData;
 import org.aludratest.eclipse.vde.model.ITestDataConfiguration;
 import org.aludratest.eclipse.vde.model.ITestDataMetadata;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
@@ -161,6 +168,32 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 	public void init(IEditorSite site, IEditorInput editorInput) throws PartInitException {
 		if (!(editorInput instanceof IFileEditorInput))
 			throw new PartInitException("Invalid Input: Must be IFileEditorInput");
+
+		// check input for valid testdata XML
+		IFile file = ((IFileEditorInput) editorInput).getFile();
+
+		InputStream in = null;
+		try {
+			in = file.getContents();
+			IContentDescription description = Platform.getContentTypeManager().getDescriptionFor(in, file.getName(), null);
+			if (!"Test Data".equals(description.getContentType().getName())) {
+				throw new PartInitException(
+						"Unsupported content type for Test Data Editor. Please open with XML editor and verify file is valid Test Data XML file.");
+			}
+		}
+		catch (IOException e) {
+			throw new PartInitException("Could not examine file", e);
+		}
+		catch (PartInitException e) {
+			throw e;
+		}
+		catch (CoreException e) {
+			throw new PartInitException("Could not examine file", e);
+		}
+		finally {
+			IOUtils.closeQuietly(in);
+		}
+
 		super.init(site, editorInput);
 		setPartName(getTitle());
 	}
