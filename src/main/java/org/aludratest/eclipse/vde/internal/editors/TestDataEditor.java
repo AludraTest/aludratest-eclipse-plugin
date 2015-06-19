@@ -206,16 +206,7 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 
 	@Override
 	protected void pageChange(int newPageIndex) {
-		if (newPageIndex == 0) { // TODO store index from addPage()
-			metadataPage.refreshContents();
-		}
-		if (newPageIndex == 1) {
-			visualEditPage.refreshContents();
-		}
-		if (newPageIndex == 2) {
-			gridPage.refreshContents();
-		}
-		
+		updatePage(newPageIndex);
 		super.pageChange(newPageIndex);
 
 		IFormPage pg = getActivePageInstance();
@@ -255,6 +246,20 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 			testData = new TestData(documentProvider);
 		}
 		return testData;
+	}
+
+	private void updatePage(int pageIndex) {
+		switch (pageIndex) {
+			case 0: // TODO store index from addPage()
+				metadataPage.refreshContents();
+				break;
+			case 1:
+				visualEditPage.refreshContents();
+				break;
+			case 2:
+				gridPage.refreshContents();
+				break;
+		}
 	}
 
 	private IDocument getDocument() {

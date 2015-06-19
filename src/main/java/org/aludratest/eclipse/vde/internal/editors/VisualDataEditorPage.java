@@ -25,13 +25,11 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.forms.IManagedForm;
-import org.eclipse.ui.forms.editor.FormEditor;
-import org.eclipse.ui.forms.editor.FormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 
-public class VisualDataEditorPage extends FormPage {
+public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 
 	private static final String ID = "vde";
 
@@ -39,13 +37,13 @@ public class VisualDataEditorPage extends FormPage {
 
 	private ConfigurationSegmentsMasterDetailsBlock configurationSegments;
 
-	public VisualDataEditorPage(FormEditor editor) {
+	public VisualDataEditorPage(TestDataEditor editor) {
 		super(editor, ID, "Visual Data Editor");
 	}
 
 	@Override
 	public TestDataEditor getEditor() {
-		return (TestDataEditor) super.getEditor();
+		return super.getEditor();
 	}
 
 	@Override
@@ -134,6 +132,7 @@ public class VisualDataEditorPage extends FormPage {
 		section.setClient(c);
 	}
 
+	@Override
 	public void refreshContents() {
 		if (cvConfig != null) {
 			// try to maintain selection

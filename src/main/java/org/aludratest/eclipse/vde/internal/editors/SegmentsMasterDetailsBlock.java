@@ -268,6 +268,7 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 			meta.removeSegment(segment);
 
 			tvSegments.refresh();
+			tvSegments.setSelection(new StructuredSelection());
 		}
 	}
 

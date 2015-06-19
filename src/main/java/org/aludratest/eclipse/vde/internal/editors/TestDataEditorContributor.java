@@ -5,6 +5,9 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -22,8 +25,9 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * editor.
  */
 public class TestDataEditorContributor extends MultiPageEditorActionBarContributor {
-	private IEditorPart activeEditorPart;
 	private Action sampleAction;
+
+	private TestDataEditor editor;
 
 	/**
 	 * Creates a multi-page contributor.
@@ -42,16 +46,18 @@ public class TestDataEditorContributor extends MultiPageEditorActionBarContribut
 		return (editor == null ? null : editor.getAction(actionID));
 	}
 
+	@Override
+	public void setActiveEditor(IEditorPart part) {
+		super.setActiveEditor(part);
+		this.editor = (TestDataEditor) part;
+		setActivePage(editor == null ? null : editor.getActiveEditor());
+	}
+
 	/*
 	 * (non-JavaDoc) Method declared in AbstractMultiPageEditorActionBarContributor.
 	 */
 	@Override
 	public void setActivePage(IEditorPart part) {
-		if (activeEditorPart == part)
-			return;
-
-		activeEditorPart = part;
-
 		IActionBars actionBars = getActionBars();
 		if (actionBars != null && (part instanceof ITextEditor)) {
 			ITextEditor editor = (ITextEditor) part;
@@ -69,10 +75,11 @@ public class TestDataEditorContributor extends MultiPageEditorActionBarContribut
 					getAction(editor, IDEActionFactory.BOOKMARK.getId()));
 			actionBars.updateActionBars();
 		}
-		else if (actionBars != null) {
+		else if (actionBars != null && editor != null) {
+			AbstractTestEditorFormPage pg = (AbstractTestEditorFormPage) editor.getActivePageInstance();
 			actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), null);
-			actionBars.setGlobalActionHandler(ActionFactory.UNDO.getId(), null);
-			actionBars.setGlobalActionHandler(ActionFactory.REDO.getId(), null);
+			actionBars.setGlobalActionHandler(ActionFactory.UNDO.getId(), new HistoryActionDelegate(pg, true));
+			actionBars.setGlobalActionHandler(ActionFactory.REDO.getId(), new HistoryActionDelegate(pg, false));
 			actionBars.setGlobalActionHandler(ActionFactory.CUT.getId(), null);
 			actionBars.setGlobalActionHandler(ActionFactory.COPY.getId(), null);
 			actionBars.setGlobalActionHandler(ActionFactory.PASTE.getId(), null);
@@ -80,7 +87,6 @@ public class TestDataEditorContributor extends MultiPageEditorActionBarContribut
 			actionBars.setGlobalActionHandler(ActionFactory.FIND.getId(), null);
 			actionBars.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(), null);
 			actionBars.updateActionBars();
-
 		}
 	}
 
@@ -103,4 +109,100 @@ public class TestDataEditorContributor extends MultiPageEditorActionBarContribut
 		manager.prependToGroup(IWorkbenchActionConstants.MB_ADDITIONS, menu);
 		menu.add(sampleAction);
 	}
+
+	private class HistoryActionDelegate extends Action {
+
+		private boolean undo;
+
+		private AbstractTestEditorFormPage formPage;
+
+		public HistoryActionDelegate(AbstractTestEditorFormPage formPage, boolean undo) {
+			this.formPage = formPage;
+			this.undo = undo;
+		}
+
+		private IAction getDelegate() {
+			try {
+				return formPage.getEditor().getSourceEditor()
+						.getAction(undo ? ActionFactory.UNDO.getId() : ActionFactory.REDO.getId());
+			}
+			catch (Throwable t) {
+				return new Action() {
+				}; // dummy action e.g. during dispose
+			}
+		}
+
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return getDelegate().getImageDescriptor();
+		}
+
+		@Override
+		public String getActionDefinitionId() {
+			return getDelegate().getActionDefinitionId();
+		}
+
+		@Override
+		public String getDescription() {
+			return getDelegate().getDescription();
+		}
+
+		@Override
+		public int getAccelerator() {
+			return getDelegate().getAccelerator();
+		}
+
+		@Override
+		public ImageDescriptor getDisabledImageDescriptor() {
+			return getDelegate().getDisabledImageDescriptor();
+		}
+
+		@Override
+		public ImageDescriptor getHoverImageDescriptor() {
+			return getDelegate().getHoverImageDescriptor();
+		}
+
+		@Override
+		public String getId() {
+			return getDelegate().getId();
+		}
+
+		@Override
+		public String getText() {
+			return getDelegate().getText();
+		}
+
+		@Override
+		public String getToolTipText() {
+			return getDelegate().getToolTipText();
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return getDelegate().isEnabled();
+		}
+
+		@Override
+		public void run() {
+			getDelegate().run();
+			formPage.refreshContents();
+		}
+
+		@Override
+		public void runWithEvent(Event event) {
+			getDelegate().runWithEvent(event);
+			formPage.refreshContents();
+		}
+
+		@Override
+		public void addPropertyChangeListener(IPropertyChangeListener listener) {
+			getDelegate().addPropertyChangeListener(listener);
+		}
+
+		@Override
+		public void removePropertyChangeListener(IPropertyChangeListener listener) {
+			getDelegate().removePropertyChangeListener(listener);
+		}
+	}
+
 }
