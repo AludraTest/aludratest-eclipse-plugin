@@ -25,6 +25,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -60,10 +62,13 @@ public class ConfigurationSegmentsMasterDetailsBlock extends MasterDetailsBlock 
 		managedForm.addPart(sectionPart);
 
 		Composite c = managedForm.getToolkit().createComposite(section);
-		c.setLayout(new FillLayout());
+		c.setLayout(new GridLayout(1, false));
 
 		// the sections tableviewer
-		Table table = managedForm.getToolkit().createTable(c, SWT.BORDER | SWT.SINGLE);
+		Table table = managedForm.getToolkit().createTable(c, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd.heightHint = 200;
+		table.setLayoutData(gd);
 
 		Menu contextMenu = new Menu(table);
 		final MenuItem mnuDelete = new MenuItem(contextMenu, SWT.PUSH);

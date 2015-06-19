@@ -77,9 +77,12 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 	@Override
 	protected void createMasterPart(final IManagedForm managedForm, Composite parent) {
 		this.managedForm = managedForm;
+		managedForm.getForm().setExpandVertical(true);
+		managedForm.getForm().setMinHeight(300);
 
 		Section section = managedForm.getToolkit().createSection(parent,
 				Section.EXPANDED | Section.DESCRIPTION | Section.TITLE_BAR);
+		section.setLayoutData(new GridData(SWT.BEGINNING, SWT.FILL, false, false));
 		section.setText("All segments");
 		section.setDescription("Select a segment to edit, or create a new segment.");
 		sectionPart = new SectionPart(section);
@@ -91,16 +94,18 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 		gl.verticalSpacing = 4;
 		c.setLayout(gl);
 
-		// the sections treeviewer
-		Tree tree = managedForm.getToolkit().createTree(c, SWT.BORDER | SWT.SINGLE);
-		tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		// the section's treeviewer
+		Tree tree = managedForm.getToolkit().createTree(c, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd.heightHint = 200;
+		tree.setLayoutData(gd);
 		tvSegments = new TreeViewer(tree);
 
 		tvSegments.setContentProvider(new TestDataSegmentsContentProvider());
 		tvSegments.setLabelProvider(new TestDataSegmentsLabelProvider());
 
 		Composite cpoButtons = managedForm.getToolkit().createComposite(c);
-		cpoButtons.setLayoutData(new GridData(SWT.RIGHT, SWT.FILL, false, true));
+		cpoButtons.setLayoutData(new GridData(SWT.RIGHT, SWT.BEGINNING, false, false));
 
 		gl = new GridLayout(1, false);
 		gl.verticalSpacing = 8;

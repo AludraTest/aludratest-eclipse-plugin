@@ -210,9 +210,11 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 		JavaTypeContentProposalProvider.attachToComponents(txtDataClass, btnBrowseClass, getEditor(),
 				"Please select a Data type to use for this segment.", Data.class.getName());
 
-		Table tbl = new Table(c, SWT.BORDER | SWT.FULL_SELECTION);
+		Table tbl = new Table(c, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
 		tbl.setHeaderVisible(true);
-		tbl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd.heightHint = 200;
+		tbl.setLayoutData(gd);
 
 		// create columns
 		TableColumn tc = new TableColumn(tbl, SWT.LEAD);

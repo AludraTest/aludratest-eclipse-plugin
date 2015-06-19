@@ -91,9 +91,11 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 		c.setLayout(new GridLayout(1, false));
 
 		Table tbl = new Table(c, SWT.BORDER | SWT.FULL_SELECTION);
-		tbl.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gd.heightHint = 200;
+		tbl.setLayoutData(gd);
 		tbl.setHeaderVisible(true);
-		// TODO resize listener to adjust table height to available client size; avoid scrolling of details part
+
 
 		// create columns
 		TableColumn tc = new TableColumn(tbl, SWT.LEAD);
