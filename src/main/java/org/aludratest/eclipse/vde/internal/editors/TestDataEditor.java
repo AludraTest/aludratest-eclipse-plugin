@@ -60,8 +60,6 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 	/** The model reflecting the current editor contents. */
 	private ITestData testData;
 
-	private int oldPageIndex = -1;
-
 	private DOMDocumentProvider documentProvider = new TestDataEditorDOMDocumentProvider();
 
 	/**
@@ -218,7 +216,6 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 			gridPage.refreshContents();
 		}
 		
-		oldPageIndex = newPageIndex;
 		super.pageChange(newPageIndex);
 
 		IFormPage pg = getActivePageInstance();
