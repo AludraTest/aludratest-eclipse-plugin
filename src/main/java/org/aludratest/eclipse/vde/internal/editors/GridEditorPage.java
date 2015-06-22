@@ -56,6 +56,7 @@ import org.eclipse.nebula.widgets.nattable.painter.cell.decorator.PaddingDecorat
 import org.eclipse.nebula.widgets.nattable.selection.SelectionLayer;
 import org.eclipse.nebula.widgets.nattable.style.CellStyleAttributes;
 import org.eclipse.nebula.widgets.nattable.style.DisplayMode;
+import org.eclipse.nebula.widgets.nattable.style.HorizontalAlignmentEnum;
 import org.eclipse.nebula.widgets.nattable.style.IStyle;
 import org.eclipse.nebula.widgets.nattable.style.Style;
 import org.eclipse.nebula.widgets.nattable.ui.action.IMouseAction;
@@ -195,6 +196,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		IStyle style = grid.getConfigRegistry().getConfigAttribute(CellConfigAttributes.CELL_STYLE, DisplayMode.NORMAL,
 				"ROW_HEADER");
 		style.setAttributeValue(CellStyleAttributes.FONT, font);
+		style.setAttributeValue(CellStyleAttributes.HORIZONTAL_ALIGNMENT, HorizontalAlignmentEnum.LEFT);
 		style = grid.getConfigRegistry().getConfigAttribute(CellConfigAttributes.CELL_STYLE, DisplayMode.NORMAL, "COLUMN_HEADER");
 		style.setAttributeValue(CellStyleAttributes.FONT, font);
 
