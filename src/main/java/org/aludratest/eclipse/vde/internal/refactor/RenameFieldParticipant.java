@@ -148,7 +148,7 @@ public class RenameFieldParticipant extends RenameParticipant {
 							for (ITestDataConfiguration config : testData.getConfigurations()) {
 								for (ITestDataConfigurationSegment segment : config.getSegments()) {
 									if (matchingSegments.contains(segment.getName())) {
-										for (ITestDataFieldValue fieldValue : segment.getFieldValues()) {
+										for (ITestDataFieldValue fieldValue : segment.getDefinedFieldValues()) {
 											if (fieldName.equals(fieldValue.getFieldName())
 													&& (fieldValue instanceof AbstractModelNode)) {
 												result.add(new ModelNodeAttributeValueMatch(file, (AbstractModelNode) fieldValue,

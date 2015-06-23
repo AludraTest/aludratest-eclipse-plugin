@@ -439,7 +439,7 @@ public class StringEditorDialog extends TitleAreaDialog {
 					.getParentNode();
 			Map<String, ITestDataFieldValue> scriptFields = new HashMap<String, ITestDataFieldValue>();
 
-			for (ITestDataFieldValue fv : configSegment.getFieldValues()) {
+			for (ITestDataFieldValue fv : configSegment.getDefinedFieldValues()) {
 				if (fv.equals(fieldValue)) {
 					continue;
 				}

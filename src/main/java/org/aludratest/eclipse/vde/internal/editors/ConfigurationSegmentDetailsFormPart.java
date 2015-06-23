@@ -1,5 +1,8 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aludratest.eclipse.vde.internal.VdeImage;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfigurationSegment;
 import org.aludratest.eclipse.vde.internal.model.TestDataFieldValue;
@@ -9,7 +12,7 @@ import org.aludratest.eclipse.vde.model.IStringValue;
 import org.aludratest.eclipse.vde.model.ITestDataConfigurationSegment;
 import org.aludratest.eclipse.vde.model.ITestDataFieldMetadata;
 import org.aludratest.eclipse.vde.model.ITestDataFieldValue;
-import org.aludratest.eclipse.vde.model.ITestDataMetadata;
+import org.aludratest.eclipse.vde.model.ITestDataSegmentMetadata;
 import org.aludratest.eclipse.vde.model.TestDataFieldType;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ICellModifier;
@@ -70,7 +73,7 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 			allRed = ((TestDataConfigurationSegment) input).isNotReferencedInMetadata(false);
 		}
 
-		tvFields.setLabelProvider(new SegmentFieldLabelProvider(getEditor().getTestDataModel().getMetaData(), allRed));
+		tvFields.setLabelProvider(new SegmentFieldLabelProvider(allRed));
 	}
 
 	@Override
@@ -113,7 +116,7 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		tvFields = new TableViewer(tbl);
 		tvFields.setContentProvider(new SegmentFieldsContentProvider());
-		tvFields.setLabelProvider(new SegmentFieldLabelProvider(getEditor().getTestDataModel().getMetaData(), false));
+		tvFields.setLabelProvider(new SegmentFieldLabelProvider(false));
 
 		Menu contextMenu = new Menu(tbl);
 		final MenuItem mnuDelete = new MenuItem(contextMenu, SWT.PUSH);
@@ -156,16 +159,20 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 				if (element instanceof Widget) {
 					element = ((Widget) element).getData();
 				}
-				// nothing to do - all done by FieldValueCellEditor
-				// only update
+
+				SegmentField field = (SegmentField) element;
+				field.fieldValue = (ITestDataFieldValue) value;
 				tvFields.update(element, null);
 			}
 
 			@Override
 			public Object getValue(Object element, String property) {
-				ITestDataFieldValue field = (ITestDataFieldValue) element;
+				SegmentField field = (SegmentField) element;
+				if (field.fieldValue == null) {
+					field.fieldValue = segment.getFieldValue(field.fieldName, true);
+				}
 				if ("value".equals(property)) {
-					return getFieldValue(field);
+					return getFieldValue(field.fieldValue);
 				}
 				return null;
 			}
@@ -205,7 +212,24 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 		masterBlock.refreshSegmentsList();
 	}
 
-	private static class SegmentFieldsContentProvider implements IStructuredContentProvider {
+	private static class SegmentField {
+
+		private ITestDataFieldValue fieldValue;
+
+		private String fieldName;
+
+		private ITestDataFieldMetadata metadata;
+
+		public SegmentField(ITestDataFieldValue fieldValue, String fieldName, ITestDataFieldMetadata metadata) {
+			this.fieldValue = fieldValue;
+			this.fieldName = fieldName;
+			this.metadata = metadata;
+		}
+	}
+
+	private class SegmentFieldsContentProvider implements IStructuredContentProvider {
+
+		private ITestDataSegmentMetadata segmentMetadata;
 
 		@Override
 		public void dispose() {
@@ -213,11 +237,35 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			segmentMetadata = null;
+			if (newInput instanceof ITestDataConfigurationSegment) {
+				ITestDataConfigurationSegment configSegment = (ITestDataConfigurationSegment) newInput;
+
+				for (ITestDataSegmentMetadata segmentMeta : getEditor().getTestDataModel().getMetaData().getSegments()) {
+					if (configSegment.getName().equals(segmentMeta.getName())) {
+						segmentMetadata = segmentMeta;
+						break;
+					}
+				}
+			}
 		}
 
 		@Override
 		public Object[] getElements(Object inputElement) {
-			return ((ITestDataConfigurationSegment) inputElement).getFieldValues();
+			if (segmentMetadata == null) {
+				return null;
+			}
+			
+			ITestDataConfigurationSegment configSegment = (ITestDataConfigurationSegment) inputElement;
+			
+			List<SegmentField> result = new ArrayList<SegmentField>();
+			
+			for (ITestDataFieldMetadata field : segmentMetadata.getFields()) {
+				ITestDataFieldValue fieldValue = configSegment.getFieldValue(field.getName(), false);
+				result.add(new SegmentField(fieldValue, field.getName(), field));
+			}
+			
+			return result.toArray();
 		}
 
 	}
@@ -228,12 +276,9 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		private Color yellowColor;
 
-		private ITestDataMetadata metadata;
-
 		private boolean allRed;
 
-		public SegmentFieldLabelProvider(ITestDataMetadata metadata, boolean allRed) {
-			this.metadata = metadata;
+		public SegmentFieldLabelProvider(boolean allRed) {
 			this.allRed = allRed;
 			redColor = new Color(PlatformUI.getWorkbench().getDisplay(), 255, 0, 0);
 			yellowColor = new Color(PlatformUI.getWorkbench().getDisplay(), 255, 255, 219);
@@ -256,20 +301,20 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		@Override
 		public String getColumnText(Object element, int columnIndex) {
-			ITestDataFieldValue field = (ITestDataFieldValue) element;
+			SegmentField field = (SegmentField) element;
 
 			switch (columnIndex) {
 				case 0:
-					return field.getFieldName();
+					return field.fieldName;
 				case 1:
-					ITestDataFieldMetadata meta = field.getMetadata(metadata);
+					ITestDataFieldMetadata meta = field.metadata;
 					return meta == null ? "unknown" : meta.getType().displayName();
 				case 2:
-					meta = field.getMetadata(metadata);
+					meta = field.metadata;
 					// TODO perhaps simple name only
 					return meta == null ? "unknown" : meta.getSubTypeClassName();
 				case 3:
-					IFieldValue fv = field.getFieldValue();
+					IFieldValue fv = field.fieldValue == null ? null : field.fieldValue.getFieldValue();
 					if (fv == null) {
 						return null;
 					}
@@ -301,7 +346,10 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		@Override
 		public Color getForeground(Object element, int columnIndex) {
-			if (allRed || (element instanceof TestDataFieldValue && ((TestDataFieldValue) element).isNotReferencedInMetadata())) {
+			SegmentField field = (SegmentField) element;
+			if (allRed
+					|| (field.fieldValue != null && (field.fieldValue instanceof TestDataFieldValue) && (((TestDataFieldValue) field.fieldValue)
+							.isNotReferencedInMetadata()))) {
 				return redColor;
 			}
 
@@ -314,8 +362,8 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 				return null;
 			}
 
-			ITestDataFieldValue field = (ITestDataFieldValue) element;
-			if (field.isScript()) {
+			SegmentField field = (SegmentField) element;
+			if (field.fieldValue != null && field.fieldValue.isScript()) {
 				return yellowColor;
 			}
 

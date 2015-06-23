@@ -31,7 +31,47 @@ public class TestDataConfigurationSegment extends AbstractModelNode implements I
 	}
 
 	@Override
-	public ITestDataFieldValue[] getFieldValues() {
+	public ITestDataFieldValue getFieldValue(final String fieldName, boolean create) {
+		ITestDataFieldValue[] existingFields = getChildObjects(TestDataFieldValue.class, new ITestDataFieldValue[0], FIELD_VALUES);
+
+		for (ITestDataFieldValue fv : existingFields) {
+			if (fieldName.equals(fv.getFieldName())) {
+				return fv;
+			}
+		}
+
+		if (!create) {
+			return null;
+		}
+
+		// OK, create empty field
+		DOMOperation<ITestDataFieldValue> op = new DOMOperation<ITestDataFieldValue>() {
+			@Override
+			public ITestDataFieldValue perform(Element element) {
+				Element fieldValues = getChildElement(element, FIELD_VALUES, true);
+				Element newField = appendChildElement(fieldValues, FIELD_VALUE);
+				newField.setAttribute(NAME, fieldName);
+				format(newField, false);
+				return new TestDataFieldValue(TestDataConfigurationSegment.this, FIELD_VALUES,
+						getIndexOfElementInParent(newField));
+			}
+
+			@Override
+			public boolean isEdit() {
+				return true;
+			}
+
+			@Override
+			public String getName() {
+				return "Add field to config";
+			}
+		};
+
+		return performDOMOperation(op);
+	}
+
+	@Override
+	public ITestDataFieldValue[] getDefinedFieldValues() {
 		return getChildObjects(TestDataFieldValue.class, new ITestDataFieldValue[0], FIELD_VALUES);
 	}
 
@@ -45,30 +85,15 @@ public class TestDataConfigurationSegment extends AbstractModelNode implements I
 		DOMOperation<Void> op = new DOMOperation<Void>() {
 			@Override
 			public Void perform(Element element) {
-				Element fieldValues = getChildElement(element, FIELD_VALUES, true);
-				
-				// collect names of already existing fields
-				Set<String> existingFields = new HashSet<String>();
-				for (ITestDataFieldValue field : getFieldValues()) {
-					existingFields.add(field.getFieldName());
-				}
-				
-				// create fields not yet existing
 				Set<String> segmentFields = new HashSet<String>();
 				for (ITestDataFieldMetadata field : segmentMetadata.getFields()) {
-					String newFieldName = field.getName();
-					if (!existingFields.contains(newFieldName)) {
-						// create new
-						Element newField = appendChildElement(fieldValues, FIELD_VALUE);
-						newField.setAttribute(NAME, newFieldName);
-						format(newField, false);
-					}
-					segmentFields.add(newFieldName);
+					// DO NOT create fields for not yet existing (would have been here)
+					segmentFields.add(field.getName());
 				}
 
 				// do not remove existing fields not present in metadata; could be used for manual refactoring
 				// but mark them as superfluous
-				for (ITestDataFieldValue field : getFieldValues()) {
+				for (ITestDataFieldValue field : getDefinedFieldValues()) {
 					if (field instanceof TestDataFieldValue) {
 						((TestDataFieldValue) field).setNotReferencedInMetadata(!segmentFields.contains(field.getFieldName()));
 					}
@@ -136,7 +161,7 @@ public class TestDataConfigurationSegment extends AbstractModelNode implements I
 			return self;
 		}
 
-		for (ITestDataFieldValue field : getFieldValues()) {
+		for (ITestDataFieldValue field : getDefinedFieldValues()) {
 			if ((field instanceof TestDataFieldValue) && ((TestDataFieldValue) field).isNotReferencedInMetadata()) {
 				return true;
 			}

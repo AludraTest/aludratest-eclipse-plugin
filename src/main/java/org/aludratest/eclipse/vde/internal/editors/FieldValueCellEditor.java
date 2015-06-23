@@ -20,8 +20,10 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
@@ -36,6 +38,8 @@ public class FieldValueCellEditor extends DialogCellEditor {
 	private String valueToSet;
 
 	private Color yellowColor;
+
+	private Button button;
 
 	public FieldValueCellEditor(SegmentSelectable segmentSelector, Composite parent) {
 		super(parent);
@@ -100,6 +104,12 @@ public class FieldValueCellEditor extends DialogCellEditor {
 	}
 
 	@Override
+	protected Button createButton(Composite parent) {
+		button = super.createButton(parent);
+		return button;
+	}
+
+	@Override
 	protected void doSetFocus() {
 		if (txtValue.getEditable()) {
 			txtValue.selectAll();
@@ -111,7 +121,16 @@ public class FieldValueCellEditor extends DialogCellEditor {
 		txtValue.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				FieldValueCellEditor.this.focusLost();
+				final Display display = txtValue.getShell().getDisplay();
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						Control c = display.getFocusControl();
+						if (c != button) {
+							FieldValueCellEditor.this.focusLost();
+						}
+					}
+				});
 			}
 		});
 	}

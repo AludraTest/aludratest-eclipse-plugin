@@ -4,6 +4,8 @@ public interface ITestDataConfigurationSegment {
 
 	public String getName();
 
-	public ITestDataFieldValue[] getFieldValues();
+	public ITestDataFieldValue getFieldValue(String fieldName, boolean create);
+
+	public ITestDataFieldValue[] getDefinedFieldValues();
 
 }

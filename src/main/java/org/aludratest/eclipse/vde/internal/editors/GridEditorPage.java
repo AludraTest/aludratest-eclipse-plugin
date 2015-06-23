@@ -2,7 +2,9 @@ package org.aludratest.eclipse.vde.internal.editors;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.aludratest.eclipse.vde.internal.content.ClipboardRegionDoesNotMatchException;
 import org.aludratest.eclipse.vde.internal.content.ClipboardUtil;
@@ -69,6 +71,7 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -93,6 +96,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 	private Color clYellow;
 
 	private Clipboard clipboard;
+
+	private DataLayer dataLayer;
 
 	public GridEditorPage(TestDataEditor editor) {
 		super(editor, ID, "Grid Editor");
@@ -155,7 +160,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		ITestData testData = getTestDataModel();
 
 		// build body stack
-		DataLayer dataLayer = new DataLayer(new GridDataProvider(testData));
+		dataLayer = new DataLayer(new GridDataProvider(testData));
+
 		DefaultBodyLayerStack bodyLayer = new DefaultBodyLayerStack(dataLayer);
 		bodyLayer.addConfiguration(new AbstractUiBindingConfiguration() {
 			@Override
@@ -173,7 +179,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		// build row stack
 		DataLayer rowHeaderData = new DataLayer(new GridRowHeaderProvider(testData));
-		RowHeaderLayer rowHeader = new RowHeaderLayer(rowHeaderData, rowHeaderData, bodyLayer.getSelectionLayer(), false);
+		RowHeaderLayer rowHeader = new RowHeaderLayer(rowHeaderData, bodyLayer, bodyLayer.getSelectionLayer(), false);
 		rowHeader.addConfiguration(new NoResizeRowHeaderLayerConfiguration());
 		
 		// build column stack
@@ -242,6 +248,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 	}
 
 	private void refreshGrid() {
+		((GridDataProvider) dataLayer.getDataProvider()).refresh();
+
 		ITestData testData = getEditor().getTestDataModel();
 		grid.refresh();
 
@@ -302,41 +310,42 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			ITestDataFieldMetadata segmentField) {
 		String segmentName = segment.getName();
 		String fieldName = segmentField.getName();
+		ITestDataFieldMetadata meta = getFieldMetadata(segment, fieldName);
+
+		if (meta != null && meta.getType() == TestDataFieldType.OBJECT || meta.getType() == TestDataFieldType.OBJECT_LIST) {
+			String refSegName = segmentName + "." + fieldName;
+			if (meta.getType() == TestDataFieldType.OBJECT_LIST) {
+				refSegName += "-1";
+			}
+			return new CellInfo(true, "(" + refSegName + ")", null, new SegmentReference(refSegName));
+		}
 
 		for (ITestDataConfigurationSegment configSegment : config.getSegments()) {
 			if (configSegment.getName().equals(segmentName)) {
-				for (ITestDataFieldValue field : configSegment.getFieldValues()) {
-					if (field.getFieldName().equals(fieldName)) {
-						ITestDataFieldMetadata meta = getFieldMetadata(segment, fieldName);
-						if (meta != null) {
-							if (meta.getType() == TestDataFieldType.OBJECT || meta.getType() == TestDataFieldType.OBJECT_LIST) {
-								String refSegName = segmentName + "." + fieldName;
-								if (meta.getType() == TestDataFieldType.OBJECT_LIST) {
-									refSegName += "-1";
-								}
-								return new CellInfo(true, "(" + refSegName + ")", null, new SegmentReference(refSegName));
-							}
+				ITestDataFieldValue field = configSegment.getFieldValue(fieldName, false);
 
-							IFieldValue fv = field.getFieldValue();
-							if (fv.getValueType() == IFieldValue.TYPE_STRING) {
-								String value = ((IStringValue) fv).getValue();
-								if (value == null) {
-									value = "";
-								}
-								return new CellInfo(false, value, field, null);
-							}
-							if (fv.getValueType() == IFieldValue.TYPE_STRING_LIST) {
-								List<String> values = new ArrayList<String>();
-								for (IStringValue value : ((IStringListValue) fv).getValues()) {
-									values.add(value.getValue());
-								}
-								return new CellInfo(false, values.toString(), field, null);
-							}
-						}
-
-						// optimization cause no other field will match
-						return null;
+				if (field == null) {
+					if (meta != null && meta.getType() == TestDataFieldType.STRING_LIST) {
+						return new CellInfo("[]", configSegment, fieldName);
 					}
+
+					return new CellInfo("", configSegment, fieldName);
+				}
+
+				IFieldValue fv = field.getFieldValue();
+				if (fv.getValueType() == IFieldValue.TYPE_STRING) {
+					String value = ((IStringValue) fv).getValue();
+					if (value == null) {
+						value = "";
+					}
+					return new CellInfo(false, value, field, null);
+				}
+				if (fv.getValueType() == IFieldValue.TYPE_STRING_LIST) {
+					List<String> values = new ArrayList<String>();
+					for (IStringValue value : ((IStringListValue) fv).getValues()) {
+						values.add(value.getValue());
+					}
+					return new CellInfo(false, values.toString(), field, null);
 				}
 			}
 		}
@@ -392,39 +401,65 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		private ITestData testData;
 
+		private Map<Point, Object> cellInfoCache = new HashMap<Point, Object>();
+
+		private ITestDataSegmentMetadata segment;
+
+		private Integer rowCount;
+
+		private Integer colCount;
+
 		public GridDataProvider(ITestData testData) {
 			this.testData = testData;
 		}
 
 		@Override
 		public Object getDataValue(int columnIndex, int rowIndex) {
-			ITestDataSegmentMetadata segment = getSelectedSegment();
 			if (segment == null) {
 				return null;
+			}
+
+			Point pt = new Point(columnIndex, rowIndex);
+			if (cellInfoCache.containsKey(pt)) {
+				return cellInfoCache.get(pt);
 			}
 
 			ITestDataFieldMetadata field = segment.getFields()[columnIndex];
 			ITestDataConfiguration config = testData.getConfigurations()[rowIndex];
 
-			return getCellInfo(config, segment, field);
+			CellInfo ci = getCellInfo(config, segment, field);
+			cellInfoCache.put(pt, ci);
+			return ci;
 		}
 
 		@Override
 		public void setDataValue(int columnIndex, int rowIndex, Object newValue) {
-			// just do nothing. Object should not have changed.
+			// refresh cache on this position
+			cellInfoCache.remove(new Point(columnIndex, rowIndex));
 		}
 
 		@Override
 		public int getColumnCount() {
-			ITestDataSegmentMetadata segment = getSelectedSegment();
-			return segment == null ? 0 : segment.getFields().length;
+			if (colCount == null) {
+				colCount = segment == null ? 0 : segment.getFields().length;
+			}
+			return colCount.intValue();
 		}
 
 		@Override
 		public int getRowCount() {
-			return testData.getConfigurations().length;
+			if (rowCount == null) {
+				rowCount = testData.getConfigurations().length;
+			}
+			return rowCount.intValue();
 		}
 
+		public synchronized void refresh() {
+			cellInfoCache.clear();
+			rowCount = null;
+			colCount = null;
+			segment = getSelectedSegment();
+		}
 	}
 
 	private class GridColumnHeaderProvider implements IDataProvider {
@@ -518,6 +553,10 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		private SegmentReference reference;
 
+		private ITestDataConfigurationSegment configSegment;
+
+		private String fieldName;
+
 		public CellInfo(boolean isReference, String displayText, ITestDataFieldValue fieldValue, SegmentReference reference) {
 			this.isReference = isReference;
 			this.displayText = displayText;
@@ -525,7 +564,15 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			this.reference = reference;
 		}
 
+		public CellInfo(String displayText, ITestDataConfigurationSegment configSegment, String fieldName) {
+			this.configSegment = configSegment;
+			this.fieldName = fieldName;
+		}
+
 		public ITestDataFieldValue getFieldValue() {
+			if (fieldValue == null && configSegment != null && fieldName != null) {
+				fieldValue = configSegment.getFieldValue(fieldName, true);
+			}
 			return fieldValue;
 		}
 	}
@@ -538,7 +585,6 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			this.dataProvider = dataProvider;
 		}
 
-
 		@Override
 		public void accumulateConfigLabels(LabelStack configLabels, int columnPosition, int rowPosition) {
 			Object o = dataProvider.getDataValue(columnPosition, rowPosition);
@@ -550,7 +596,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 				if (!info.isReference) {
 					configLabels.addLabelOnTop("EDITABLE_VALUE");
 				}
-				if (!info.isReference && info.fieldValue.isScript()) {
+				if (!info.isReference && info.fieldValue != null && info.fieldValue.isScript()) {
 					configLabels.addLabelOnTop("SCRIPT_VALUE");
 				}
 			}
@@ -650,7 +696,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 						public void accept(int columnIndex, int rowIndex, String value, boolean script) {
 							ILayerCell cell = selectionLayer.getCellByPosition(columnIndex, rowIndex);
 							CellInfo info = (CellInfo) cell.getDataValue();
-							if (info != null && info.fieldValue != null) {
+							if (info != null && info.getFieldValue() != null) {
 								IFieldValue fv = info.fieldValue.getFieldValue();
 								if (fv != null && fv.getValueType() == IFieldValue.TYPE_STRING) {
 									((IStringValue) fv).setValue(value);
@@ -658,7 +704,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 								}
 							}
 							else {
-								// TODO construct new field value
+								// should never be null, only for referencing cells which cannot be set
 							}
 						}
 					});
