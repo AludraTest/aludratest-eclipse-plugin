@@ -1,7 +1,6 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.nebula.widgets.nattable.NatTable;
 import org.eclipse.nebula.widgets.nattable.config.AbstractUiBindingConfiguration;
 import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
@@ -137,19 +135,6 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		cvSegment = new ComboViewer(cbo);
 		cvSegment.setContentProvider(new ConfigurationSegmentsContentProvider());
 		cvSegment.setLabelProvider(new ConfigurationSegmentsLabelProvider());
-		cvSegment.setComparator(new ViewerComparator(new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				if (o1 == null) {
-					return o2 == null ? 0 : -1;
-				}
-				if (o2 == null) {
-					return 1;
-				}
-
-				return o1.compareToIgnoreCase(o2);
-			}
-		}));
 		cvSegment.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
