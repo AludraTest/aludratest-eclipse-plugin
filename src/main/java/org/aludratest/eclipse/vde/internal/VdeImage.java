@@ -5,7 +5,8 @@ import org.eclipse.swt.graphics.Image;
 public enum VdeImage {
 
 	TESTDATA("icons/testdata.gif"), SEGMENT("icons/segment.gif"), FIELD("icons/field.gif"), ADD("icons/add.gif"), DELETE(
-			"icons/delete.gif"), RENAME("icons/rename.gif"), FUNCTION("icons/function.gif"), LOCAL_VAR("icons/localvar.gif");
+			"icons/delete.gif"), RENAME("icons/rename.gif"), FUNCTION("icons/function.gif"), LOCAL_VAR("icons/localvar.gif"), IGNORE(
+			"icons/ignore.gif");
 
 	private String resource;
 

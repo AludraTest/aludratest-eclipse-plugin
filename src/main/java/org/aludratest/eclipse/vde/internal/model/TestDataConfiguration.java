@@ -42,6 +42,16 @@ public class TestDataConfiguration extends AbstractModelNode implements ITestDat
 	}
 
 	@Override
+	public String getIgnoredReason() {
+		return getAttributeValueOrNull(IGNORED_REASON);
+	}
+
+	@Override
+	public void setIgnoredReason(String reason) {
+		setAttributeValue(IGNORED_REASON, reason);
+	}
+
+	@Override
 	public ITestDataConfigurationSegment[] getSegments() {
 		return getChildObjects(TestDataConfigurationSegment.class, new ITestDataConfigurationSegment[0], SEGMENTS);
 	}

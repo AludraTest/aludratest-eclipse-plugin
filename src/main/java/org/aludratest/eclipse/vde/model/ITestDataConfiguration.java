@@ -12,4 +12,8 @@ public interface ITestDataConfiguration {
 
 	public void setIgnored(boolean ignored);
 
+	public String getIgnoredReason();
+
+	public void setIgnoredReason(String reason);
+
 }

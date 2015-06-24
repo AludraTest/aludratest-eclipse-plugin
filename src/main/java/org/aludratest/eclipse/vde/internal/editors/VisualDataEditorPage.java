@@ -108,6 +108,17 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		});
 		tiEdit.setEnabled(false);
 
+		final ToolItem tiIgnore = new ToolItem(toolbar, SWT.CHECK);
+		tiIgnore.setImage(VdeImage.IGNORE.getImage());
+		tiIgnore.setToolTipText("Ignore (skip) Configuration");
+		tiIgnore.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				tiIgnore.setSelection(handleIgnoreConfiguration());
+			}
+		});
+		tiIgnore.setEnabled(false);
+
 		cvConfig.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
@@ -120,6 +131,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				configurationSegments.setInput(sel.isEmpty() ? null : sel.getFirstElement());
 				tiDelete.setEnabled(!sel.isEmpty());
 				tiEdit.setEnabled(!sel.isEmpty());
+				tiIgnore.setEnabled(!sel.isEmpty());
 			}
 		});
 
@@ -229,6 +241,24 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			config.setName(dlg.getValue());
 			cvConfig.refresh();
 		}
+	}
+
+	private boolean handleIgnoreConfiguration() {
+		ITestDataConfiguration config = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
+				.getFirstElement();
+		if (config != null) {
+			IgnoreConfigDialog dlg = new IgnoreConfigDialog(getEditorSite().getShell());
+			dlg.setIgnored(config.isIgnored());
+			dlg.setReason(config.getIgnoredReason());
+			if (dlg.open() == IgnoreConfigDialog.OK) {
+				config.setIgnored(dlg.isIgnored());
+				config.setIgnoredReason(dlg.isIgnored() ? dlg.getReason() : null);
+			}
+
+			return config.isIgnored();
+		}
+
+		return false;
 	}
 
 	private static class TestDataConfigurationLabelProvider extends LabelProvider {
