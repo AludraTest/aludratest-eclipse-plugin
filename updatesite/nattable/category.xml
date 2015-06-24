@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="AludraTest Nat Table Update Site" url="http://aludratest.github.io/aludratest-eclipse-plugin/updatesite/nattable/">
+      The P2 update site for the AludraTest Nat Table dependency
+   </description>
+   <bundle id="org.eclipse.nebula.widgets.nattable.core" version="1.3.0.201503261201"/>
+</site>

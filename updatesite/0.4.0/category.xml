@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
    <description name="AludraTest VDE Plug-In Update Site" url="http://aludratest.github.io/aludratest-eclipse-plugin/updatesite/">
-      The P2 update site for the AludraTest Eclipse VDE Plug-In.
+      The P2 update site for the AludraTest Eclipse VDE Plug-In 0.4.0.
    </description>
    <feature url="features/org.aludratest.eclipse.vde.feature_0.4.0.qualifier.jar" id="org.aludratest.eclipse.vde.feature" version="0.4.0.qualifier"/>
-   <bundle id="org.eclipse.nebula.widgets.nattable.core" version="1.3.0.201503261201"/>
 </site>
