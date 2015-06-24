@@ -260,6 +260,9 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 				}
 				if ("type".equals(property)) {
 					meta.setType(TestDataFieldType.values()[((Number) value).intValue()]);
+					if (!canModify(entry, "pattern")) {
+						meta.setFormatterPattern(null);
+					}
 				}
 				if ("pattern".equals(property)) {
 					meta.setFormatterPattern((value == null || "".equals(value)) ? null : value.toString());
@@ -304,7 +307,6 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 					return meta.getType() == TestDataFieldType.OBJECT || meta.getType() == TestDataFieldType.OBJECT_LIST;
 				}
 				if ("pattern".equals(property)) {
-					// TODO somehow, pattern must be removed when type is changed to sth different
 					return meta.getType() == TestDataFieldType.DATE || meta.getType() == TestDataFieldType.NUMBER;
 				}
 				return true;
