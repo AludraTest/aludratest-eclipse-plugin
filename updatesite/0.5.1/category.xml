@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="AludraTest VDE Plug-In Update Site" url="http://aludratest.github.io/aludratest-eclipse-plugin/updatesite/">
+      The P2 update site for the AludraTest Eclipse VDE Plug-In 0.5.1.
+   </description>
+   <feature url="features/org.aludratest.eclipse.vde.feature_0.5.1.qualifier.jar" id="org.aludratest.eclipse.vde.feature" version="0.5.1.qualifier"/>
+</site>
