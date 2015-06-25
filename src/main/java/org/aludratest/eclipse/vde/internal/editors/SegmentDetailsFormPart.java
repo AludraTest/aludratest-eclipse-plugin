@@ -236,7 +236,7 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 
 		// cell editors
 		tvFields.setCellEditors(new CellEditor[] { new TextCellEditor(tvFields.getTable()),
-				new ComboBoxCellEditor(tvFields.getTable(), TestDataFieldType.displayNames()),
+				new ComboBoxCellEditor(tvFields.getTable(), TestDataFieldType.displayNames(), SWT.READ_ONLY),
 				new TextCellEditor(tvFields.getTable()), // TODO format pattern editor dialog
 				new DataClassCellEditor(getEditor(), tvFields.getTable())
 		});
