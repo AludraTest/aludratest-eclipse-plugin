@@ -217,7 +217,14 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE,
 				DisplayMode.EDIT, "EDITABLE_VALUE");
-		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new GridFieldValueCellEditor(this),
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR,
+				new GridFieldValueCellEditor(this, new RefreshFieldHandler() {
+					@Override
+					public void update(ITestDataFieldValue field) {
+						// unoptimized, but effective
+						grid.refresh();
+					}
+				}),
 				DisplayMode.EDIT, "EDITABLE_VALUE");
 
 		refreshContents();

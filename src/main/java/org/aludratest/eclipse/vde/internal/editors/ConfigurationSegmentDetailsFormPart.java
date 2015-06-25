@@ -150,7 +150,14 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 		tbl.setMenu(contextMenu);
 
 		// cell editors
-		tvFields.setCellEditors(new CellEditor[] { null, null, null, new FieldValueCellEditor(masterBlock, tvFields.getTable()) });
+		tvFields.setCellEditors(new CellEditor[] { null, null, null,
+				new FieldValueCellEditor(masterBlock, tvFields.getTable(), new RefreshFieldHandler() {
+					@Override
+					public void update(ITestDataFieldValue field) {
+						// would have to find SegmentField containing this field. Won't do that.
+						tvFields.refresh();
+					}
+				}) });
 
 		tvFields.setColumnProperties(new String[] { "name", "type", "subtype", "value" });
 		tvFields.setCellModifier(new ICellModifier() {
@@ -160,9 +167,11 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 					element = ((Widget) element).getData();
 				}
 
-				SegmentField field = (SegmentField) element;
-				field.fieldValue = (ITestDataFieldValue) value;
-				tvFields.update(element, null);
+				if (value instanceof ITestDataFieldValue) {
+					SegmentField field = (SegmentField) element;
+					field.fieldValue = (ITestDataFieldValue) value;
+					tvFields.update(element, null);
+				}
 			}
 
 			@Override

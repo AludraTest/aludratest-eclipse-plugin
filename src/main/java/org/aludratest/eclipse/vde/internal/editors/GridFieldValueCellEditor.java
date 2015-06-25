@@ -11,8 +11,11 @@ public class GridFieldValueCellEditor extends AbstractCellEditor {
 
 	private SegmentSelectable segmentSelectable;
 
-	public GridFieldValueCellEditor(SegmentSelectable segmentSelectable) {
+	private RefreshFieldHandler refreshHandler;
+
+	public GridFieldValueCellEditor(SegmentSelectable segmentSelectable, RefreshFieldHandler refreshHandler) {
 		this.segmentSelectable = segmentSelectable;
+		this.refreshHandler = refreshHandler;
 	}
 
 	@Override
@@ -34,7 +37,7 @@ public class GridFieldValueCellEditor extends AbstractCellEditor {
 
 	@Override
 	public Control createEditorControl(Composite parent) {
-		editorDelegate = new FieldValueCellEditor(segmentSelectable, parent);
+		editorDelegate = new FieldValueCellEditor(segmentSelectable, parent, refreshHandler);
 		return editorDelegate.getControl();
 	}
 

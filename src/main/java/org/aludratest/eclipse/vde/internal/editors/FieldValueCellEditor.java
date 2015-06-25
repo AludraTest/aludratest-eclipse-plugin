@@ -20,10 +20,8 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
@@ -39,11 +37,12 @@ public class FieldValueCellEditor extends DialogCellEditor {
 
 	private Color yellowColor;
 
-	private Button button;
+	private RefreshFieldHandler refreshHandler;
 
-	public FieldValueCellEditor(SegmentSelectable segmentSelector, Composite parent) {
+	public FieldValueCellEditor(SegmentSelectable segmentSelector, Composite parent, RefreshFieldHandler refreshViewer) {
 		super(parent);
 		this.segmentSelector = segmentSelector;
+		this.refreshHandler = refreshViewer;
 		yellowColor = new Color(parent.getDisplay(), 255, 255, 219);
 	}
 
@@ -104,12 +103,6 @@ public class FieldValueCellEditor extends DialogCellEditor {
 	}
 
 	@Override
-	protected Button createButton(Composite parent) {
-		button = super.createButton(parent);
-		return button;
-	}
-
-	@Override
 	protected void doSetFocus() {
 		if (txtValue.getEditable()) {
 			txtValue.selectAll();
@@ -118,19 +111,11 @@ public class FieldValueCellEditor extends DialogCellEditor {
 		else {
 			super.doSetFocus();
 		}
+
 		txtValue.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				final Display display = txtValue.getShell().getDisplay();
-				display.asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						Control c = display.getFocusControl();
-						if (c != button) {
-							FieldValueCellEditor.this.focusLost();
-						}
-					}
-				});
+				FieldValueCellEditor.this.focusLost();
 			}
 		});
 	}
@@ -194,6 +179,7 @@ public class FieldValueCellEditor extends DialogCellEditor {
 				dlg.setValue(strings);
 				if (dlg.open() == Dialog.OK) {
 					setFieldValue(fieldValue, dlg.getValue());
+					refreshHandler.update(fieldValue);
 					return dlg.getValue();
 				}
 			}
@@ -203,6 +189,7 @@ public class FieldValueCellEditor extends DialogCellEditor {
 				StringEditorDialog dlg = new StringEditorDialog(cellEditorWindow.getShell(), fieldValue, meta);
 
 				if (dlg.open() == StringEditorDialog.OK) {
+					refreshHandler.update(fieldValue);
 					return fieldValue;
 				}
 			}
