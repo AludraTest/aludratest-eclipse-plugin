@@ -214,10 +214,10 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 	}
 
 	private void handleRemoveField() {
-		ITestDataFieldValue field = (ITestDataFieldValue) ((IStructuredSelection) tvFields.getSelection())
+		SegmentField field = (SegmentField) ((IStructuredSelection) tvFields.getSelection())
 				.getFirstElement();
-		if (field != null && (segment instanceof TestDataConfigurationSegment)) {
-			((TestDataConfigurationSegment) segment).removeFieldValue(field);
+		if (field != null && field.fieldValue != null && (segment instanceof TestDataConfigurationSegment)) {
+			((TestDataConfigurationSegment) segment).removeFieldValue(field.fieldValue);
 		}
 		tvFields.refresh();
 		masterBlock.refreshSegmentsList();
