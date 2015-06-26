@@ -188,6 +188,7 @@ public class ConfigurationSegmentsMasterDetailsBlock extends MasterDetailsBlock 
 				&& ((TestDataConfigurationSegment) segment).isNotReferencedInMetadata(false)) {
 			((TestDataConfiguration) getTestDataConfiguration()).removeSegment(segment);
 			tvSegments.refresh();
+			tvSegments.setSelection(new StructuredSelection());
 		}
 	}
 

@@ -1,7 +1,9 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.aludratest.eclipse.vde.internal.VdeImage;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfigurationSegment;
@@ -261,19 +263,30 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 
 		@Override
 		public Object[] getElements(Object inputElement) {
-			if (segmentMetadata == null) {
-				return null;
-			}
-			
 			ITestDataConfigurationSegment configSegment = (ITestDataConfigurationSegment) inputElement;
-			
 			List<SegmentField> result = new ArrayList<SegmentField>();
-			
+
+			if (segmentMetadata == null) {
+				for (ITestDataFieldValue field : configSegment.getDefinedFieldValues()) {
+					result.add(new SegmentField(field, field.getFieldName(), null));
+				}
+
+				return result.toArray();
+			}
+
+			Set<String> metadataFields = new HashSet<String>();
 			for (ITestDataFieldMetadata field : segmentMetadata.getFields()) {
 				ITestDataFieldValue fieldValue = configSegment.getFieldValue(field.getName(), false);
 				result.add(new SegmentField(fieldValue, field.getName(), field));
+				metadataFields.add(field.getName());
 			}
 			
+			for (ITestDataFieldValue field : configSegment.getDefinedFieldValues()) {
+				if (!metadataFields.contains(field.getFieldName())) {
+					result.add(0, new SegmentField(field, field.getFieldName(), null));
+				}
+			}
+
 			return result.toArray();
 		}
 
