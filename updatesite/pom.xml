@@ -62,6 +62,11 @@
 									<filtering>false</filtering>
 								</resource>
 								<resource>
+									<targetPath>0.5.2</targetPath>
+									<directory>0.5.2/target/repository</directory>
+									<filtering>false</filtering>
+								</resource>
+								<resource>
 									<directory>${basedir}</directory>
 									<includes>
 										<include>compositeContent.xml</include>
