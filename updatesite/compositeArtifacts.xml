@@ -3,12 +3,12 @@
 <repository name='AludraTest Visual Data Editor Plug-In Update Site' type='org.eclipse.equinox.internal.p2.artifact.repository.CompositeArtifactRepository' version='1.0.0'>
     <properties size='0'>
     </properties>
-    <children size='3'>
-        <child location='0.3.0'/>
+    <children size='5'>
         <child location='0.4.0'/>
         <child location='0.5.0'/>
         <child location='0.5.1'/>
         <child location='0.5.2'/>
+        <child location='0.5.3'/>
         <child location='nattable'/>
     </children>
 </repository>
