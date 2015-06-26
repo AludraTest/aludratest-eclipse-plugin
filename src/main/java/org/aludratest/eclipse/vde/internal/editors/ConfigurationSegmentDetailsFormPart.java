@@ -128,10 +128,10 @@ public class ConfigurationSegmentDetailsFormPart extends AbstractFormPart implem
 			@Override
 			public void menuShown(MenuEvent e) {
 				// get selected field; only enable if field is red
-				ITestDataFieldValue field = (ITestDataFieldValue) ((IStructuredSelection) tvFields.getSelection())
+				SegmentField field = (SegmentField) ((IStructuredSelection) tvFields.getSelection())
 						.getFirstElement();
-				if (field != null && (field instanceof TestDataFieldValue)
-						&& ((TestDataFieldValue) field).isNotReferencedInMetadata()) {
+				if (field != null && (field.fieldValue instanceof TestDataFieldValue)
+						&& ((TestDataFieldValue) field.fieldValue).isNotReferencedInMetadata()) {
 					mnuDelete.setEnabled(true);
 				}
 				else {
