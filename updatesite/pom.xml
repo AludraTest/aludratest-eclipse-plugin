@@ -66,6 +66,11 @@
 									<directory>0.5.2/target/repository</directory>
 									<filtering>false</filtering>
 								</resource>
+								<resource>
+									<targetPath>0.5.3</targetPath>
+									<directory>0.5.3/target/repository</directory>
+									<filtering>false</filtering>
+								</resource>
 								<!-- insert new folders here -->
 								<resource>
 									<directory>${basedir}</directory>
