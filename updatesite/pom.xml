@@ -42,11 +42,6 @@
 									<filtering>false</filtering>
 								</resource>
 								<resource>
-									<targetPath>0.3.0</targetPath>
-									<directory>0.3.0/target/repository</directory>
-									<filtering>false</filtering>
-								</resource>
-								<resource>
 									<targetPath>0.4.0</targetPath>
 									<directory>0.4.0/target/repository</directory>
 									<filtering>false</filtering>
