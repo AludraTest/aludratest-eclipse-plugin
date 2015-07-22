@@ -332,8 +332,8 @@ public class StringEditorDialog extends TitleAreaDialog {
 			if (value != null) {
 				Matcher m = PATTERN_DATE.matcher(value);
 				if (m.matches()) {
-					dtPlainValue
-							.setDate(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)));
+					dtPlainValue.setDate(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)) - 1,
+							Integer.parseInt(m.group(3)));
 				}
 			}
 		}
