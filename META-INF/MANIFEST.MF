@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: AludraTest Visual Data Editor
 Bundle-SymbolicName: org.aludratest.eclipse.vde;singleton:=true
-Bundle-Version: 0.5.3.qualifier
+Bundle-Version: 0.5.4.qualifier
 Bundle-Activator: org.aludratest.eclipse.vde.internal.VdePlugin
 Bundle-Vendor: AludraTest.org
 Require-Bundle: org.eclipse.ui,
