@@ -8,4 +8,6 @@ public interface ITestDataMetadata {
 
 	public void removeSegment(ITestDataSegmentMetadata segment);
 
+	public void moveSegment(ITestDataSegmentMetadata segment, int newIndex);
+
 }

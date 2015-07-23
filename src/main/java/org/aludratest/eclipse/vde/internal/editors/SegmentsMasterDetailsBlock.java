@@ -1,6 +1,7 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.aludratest.eclipse.vde.internal.TestDataCore;
@@ -139,12 +140,33 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 		});
 		btnDuplicate.setEnabled(false);
 
+		final Button btnUp = managedForm.getToolkit().createButton(cpoButtons, "Up", SWT.PUSH);
+		btnUp.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
+		final Button btnDown = managedForm.getToolkit().createButton(cpoButtons, "Down", SWT.PUSH);
+		btnDown.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
+		btnUp.setEnabled(false);
+		btnDown.setEnabled(false);
+		btnUp.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleSegmentUp();
+			}
+		});
+		btnDown.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleSegmentDown();
+			}
+		});
+
 		tvSegments.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				managedForm.fireSelectionChanged(sectionPart, event.getSelection());
 				btnRemove.setEnabled(!event.getSelection().isEmpty());
 				btnDuplicate.setEnabled(!event.getSelection().isEmpty());
+				btnUp.setEnabled(!event.getSelection().isEmpty());
+				btnDown.setEnabled(!event.getSelection().isEmpty());
 			}
 		});
 
@@ -289,6 +311,46 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 			copySegment(segment, meta, newName);
 
 			tvSegments.refresh();
+		}
+	}
+
+	private void handleSegmentUp() {
+		IStructuredSelection selection = (IStructuredSelection) tvSegments.getSelection();
+		if (!selection.isEmpty()) {
+			ITestDataSegmentMetadata segment = (ITestDataSegmentMetadata) selection.getFirstElement();
+			ITestDataMetadata meta = ((ITestData) tvSegments.getInput()).getMetaData();
+
+			ITestDataSegmentMetadata[] allSegments = meta.getSegments();
+			int index = Arrays.asList(allSegments).indexOf(segment);
+			if (index < 1) {
+				return; // no up possible
+			}
+
+			meta.moveSegment(segment, index - 1);
+			tvSegments.refresh();
+			allSegments = meta.getSegments();
+
+			tvSegments.setSelection(new StructuredSelection(allSegments[index - 1]));
+		}
+	}
+
+	private void handleSegmentDown() {
+		IStructuredSelection selection = (IStructuredSelection) tvSegments.getSelection();
+		if (!selection.isEmpty()) {
+			ITestDataSegmentMetadata segment = (ITestDataSegmentMetadata) selection.getFirstElement();
+			ITestDataMetadata meta = ((ITestData) tvSegments.getInput()).getMetaData();
+
+			ITestDataSegmentMetadata[] allSegments = meta.getSegments();
+			int index = Arrays.asList(allSegments).indexOf(segment);
+			if (index < 0 || index > allSegments.length - 2) {
+				return; // no down possible
+			}
+
+			meta.moveSegment(allSegments[index + 1], index);
+			tvSegments.refresh();
+			allSegments = meta.getSegments();
+
+			tvSegments.setSelection(new StructuredSelection(allSegments[index + 1]));
 		}
 	}
 

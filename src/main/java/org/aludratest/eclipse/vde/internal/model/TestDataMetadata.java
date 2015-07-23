@@ -47,6 +47,15 @@ public class TestDataMetadata extends AbstractModelNode implements ITestDataMeta
 	}
 
 	@Override
+	public void moveSegment(ITestDataSegmentMetadata segment, int newIndex) {
+		if (!(segment instanceof AbstractModelNode)) {
+			return;
+		}
+
+		moveChild(SEGMENTS, ((AbstractModelNode) segment), newIndex);
+	}
+
+	@Override
 	protected String getElementName() {
 		return METADATA;
 	}
