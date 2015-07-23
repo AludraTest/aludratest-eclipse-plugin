@@ -2,8 +2,8 @@
 #
 
 # update version here and run script
-PREV_VERSION=0.5.3
-NEW_VERSION=0.5.4
+PREV_VERSION=0.5.4
+NEW_VERSION=0.6.0
 
 PREV_VERSION_SHORT=$(echo $PREV_VERSION | sed s/\\.//g)
 NEW_VERSION_SHORT=$(echo $NEW_VERSION | sed s/\\.//g)
