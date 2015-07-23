@@ -347,6 +347,10 @@ class SegmentDetailsFormPart extends AbstractFormPart implements IDetailsPage {
 							field.setName(entry.getField().getName());
 							field.setType(entry.getField().getType());
 							field.setSubTypeClassName(entry.getField().getSubTypeClassName());
+							String stcn = field.getSubTypeClassName();
+							if (stcn != null && !"".equals(stcn) && !String.class.getName().equals(stcn)) {
+								openSubSegment(field);
+							}
 							tvFields.refresh();
 						}
 						else if (entry.getWarningMessage() != null) {
