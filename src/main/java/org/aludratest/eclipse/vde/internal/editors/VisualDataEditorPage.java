@@ -1,10 +1,21 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.aludratest.eclipse.vde.internal.VdeImage;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfiguration;
 import org.aludratest.eclipse.vde.internal.util.ArrayUtil;
+import org.aludratest.eclipse.vde.model.IFieldValue;
+import org.aludratest.eclipse.vde.model.IStringListValue;
+import org.aludratest.eclipse.vde.model.IStringValue;
 import org.aludratest.eclipse.vde.model.ITestData;
 import org.aludratest.eclipse.vde.model.ITestDataConfiguration;
+import org.aludratest.eclipse.vde.model.ITestDataConfigurationSegment;
+import org.aludratest.eclipse.vde.model.ITestDataFieldValue;
+import org.aludratest.eclipse.vde.model.TestDataFieldType;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -53,8 +64,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		form.setText("Visual Data Editor");
 		form.getBody().setLayout(new GridLayout(1, false));
 
-		Section section = toolkit.createSection(form.getBody(), Section.DESCRIPTION
-				| Section.EXPANDED | Section.TITLE_BAR);
+		Section section = toolkit.createSection(form.getBody(), Section.DESCRIPTION | Section.EXPANDED | Section.TITLE_BAR);
 		section.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 		section.setText("Configurations");
 		section.setDescription("Select the test data configuration to edit.");
@@ -108,6 +118,17 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		});
 		tiEdit.setEnabled(false);
 
+		final ToolItem tiDuplicate = new ToolItem(toolbar, SWT.PUSH);
+		tiDuplicate.setImage(VdeImage.DUPLICATE.getImage());
+		tiDuplicate.setToolTipText("Duplicate Configuration");
+		tiDuplicate.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleDuplicateConfiguration();
+			}
+		});
+		tiDuplicate.setEnabled(false);
+
 		final ToolItem tiIgnore = new ToolItem(toolbar, SWT.CHECK);
 		tiIgnore.setImage(VdeImage.IGNORE.getImage());
 		tiIgnore.setToolTipText("Ignore (skip) Configuration");
@@ -132,6 +153,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				tiDelete.setEnabled(!sel.isEmpty());
 				tiEdit.setEnabled(!sel.isEmpty());
 				tiIgnore.setEnabled(!sel.isEmpty());
+				tiDuplicate.setEnabled(!sel.isEmpty());
 			}
 		});
 
@@ -150,11 +172,12 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			// try to maintain selection
 			String selectedConfigName = null;
 			if (!cvConfig.getSelection().isEmpty()) {
-				selectedConfigName = ((ITestDataConfiguration) ((IStructuredSelection)cvConfig.getSelection()).getFirstElement()).getName();
+				selectedConfigName = ((ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection()).getFirstElement())
+						.getName();
 			}
-			ITestDataConfiguration[] configs = getEditor().getTestDataModel().getConfigurations(); 
+			ITestDataConfiguration[] configs = getEditor().getTestDataModel().getConfigurations();
 			cvConfig.setInput(configs);
-			
+
 			if (selectedConfigName != null) {
 				for (ITestDataConfiguration config : configs) {
 					if (selectedConfigName.equals(config.getName())) {
@@ -173,30 +196,14 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		}
 	}
 
-	private final static IInputValidator CONFIG_NAME_VALIDATOR = new IInputValidator() {
-		@Override
-		public String isValid(String newText) {
-			if (newText == null || newText.length() == 0) {
-				return "Please enter a value.";
-			}
-			if (newText.trim().length() != newText.length()) {
-				return "Please do not begin or end with a space.";
-			}
-
-			// TODO handle existing names; handle differently for edit and add
-
-			return null;
-		}
-	};
-
 	private void handleAddConfiguration() {
 		InputDialog dlg = new InputDialog(getEditorSite().getShell(), "Add Test Data Configuration",
-				"Please enter the name for the new Test Data Configuration", "newConfiguration", CONFIG_NAME_VALIDATOR);
-		
+				"Please enter the name for the new Test Data Configuration", "newConfiguration", createConfigNameValidator(false));
+
 		if (dlg.open() != InputDialog.OK) {
 			return;
 		}
-		
+
 		String configName = dlg.getValue();
 		ITestData testData = getEditor().getTestDataModel();
 		testData.addConfiguration(configName);
@@ -232,7 +239,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				.getFirstElement();
 		if (config != null) {
 			InputDialog dlg = new InputDialog(getEditorSite().getShell(), "Rename Test Data Configuration",
-					"Please enter the name for the Test Data Configuration", config.getName(), CONFIG_NAME_VALIDATOR);
+					"Please enter the name for the Test Data Configuration", config.getName(), createConfigNameValidator(true));
 
 			if (dlg.open() != InputDialog.OK) {
 				return;
@@ -240,6 +247,65 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 
 			config.setName(dlg.getValue());
 			cvConfig.refresh();
+		}
+	}
+
+	private void handleDuplicateConfiguration() {
+		ITestDataConfiguration config = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
+				.getFirstElement();
+		if (config != null) {
+			// first of all, query name for new config
+			InputDialog dlg = new InputDialog(getEditorSite().getShell(), "Duplicate Test Data Configuration",
+					"Please enter the name for the new Test Data Configuration", config.getName(),
+					createConfigNameValidator(false));
+
+			if (dlg.open() != InputDialog.OK) {
+				return;
+			}
+
+			// create new configuration
+			ITestData testData = getEditor().getTestDataModel();
+			testData.addConfiguration(dlg.getValue());
+			ITestDataConfiguration copyConfig = ArrayUtil.lastElement(testData.getConfigurations());
+			if (copyConfig instanceof TestDataConfiguration) {
+				((TestDataConfiguration) copyConfig).syncToMetadata(testData.getMetaData());
+
+				// build map for faster access
+				Map<String, ITestDataConfigurationSegment> copySegments = new HashMap<String, ITestDataConfigurationSegment>();
+				for (ITestDataConfigurationSegment segment : copyConfig.getSegments()) {
+					copySegments.put(segment.getName(), segment);
+				}
+
+				// copy data
+				for (ITestDataConfigurationSegment segment : config.getSegments()) {
+					ITestDataConfigurationSegment copySegment = copySegments.get(segment.getName());
+					if (copySegment != null) {
+						for (ITestDataFieldValue fv : segment.getDefinedFieldValues()) {
+							ITestDataFieldValue copyValue = copySegment.getFieldValue(fv.getFieldName(), true);
+							TestDataFieldType fieldType = fv.getMetadata(testData.getMetaData()).getType();
+							if (fieldType != TestDataFieldType.OBJECT && fieldType != TestDataFieldType.OBJECT_LIST) {
+								IFieldValue ofv = fv.getFieldValue();
+								IFieldValue cfv = copyValue.getFieldValue();
+								if (cfv.getValueType() == IFieldValue.TYPE_STRING
+										&& ofv.getValueType() == IFieldValue.TYPE_STRING) {
+									((IStringValue) cfv).setValue(((IStringValue) ofv).getValue());
+								}
+								else {
+									for (IStringValue s : (((IStringListValue) ofv).getValues())) {
+										((IStringListValue) cfv).addValue(s.getValue());
+									}
+								}
+								copyValue.setScript(fv.isScript());
+							}
+						}
+					}
+				}
+			}
+
+			// update control
+			cvConfig.setInput(testData.getConfigurations());
+			cvConfig.getControl().getParent().getParent().layout();
+			cvConfig.setSelection(new StructuredSelection(copyConfig));
 		}
 	}
 
@@ -261,6 +327,22 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		return false;
 	}
 
+	private IInputValidator createConfigNameValidator(boolean edit) {
+		List<String> disallowedNames = new ArrayList<String>();
+		ITestDataConfiguration[] configs = getEditor().getTestDataModel().getConfigurations();
+
+		ITestDataConfiguration selConfig = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
+				.getFirstElement();
+
+		for (ITestDataConfiguration config : configs) {
+			if (!edit || !config.equals(selConfig)) {
+				disallowedNames.add(config.getName());
+			}
+		}
+
+		return new ConfigNameValidator(disallowedNames);
+	}
+
 	private static class TestDataConfigurationLabelProvider extends LabelProvider {
 		@Override
 		public String getText(Object element) {
@@ -270,5 +352,31 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			return super.getText(element);
 		}
 	}
+
+	private static class ConfigNameValidator implements IInputValidator {
+
+		private List<String> disallowedNames;
+
+		public ConfigNameValidator(List<String> disallowedNames) {
+			// no copy constructor as this is all internal and under our control
+			this.disallowedNames = disallowedNames;
+		}
+
+		@Override
+		public String isValid(String newText) {
+			if (newText == null || newText.length() == 0) {
+				return "Please enter a value.";
+			}
+			if (newText.trim().length() != newText.length()) {
+				return "Please do not begin or end with a space.";
+			}
+
+			if (disallowedNames.contains(newText)) {
+				return "There already exists a configuration with this name";
+			}
+
+			return null;
+		}
+	};
 
 }
