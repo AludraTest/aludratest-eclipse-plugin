@@ -353,7 +353,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		}
 	}
 
-	private static class ConfigNameValidator implements IInputValidator {
+	static class ConfigNameValidator implements IInputValidator {
 
 		private List<String> disallowedNames;
 

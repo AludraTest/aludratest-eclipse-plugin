@@ -36,20 +36,31 @@ import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
 import org.eclipse.nebula.widgets.nattable.config.IConfigRegistry;
 import org.eclipse.nebula.widgets.nattable.config.IEditableRule;
 import org.eclipse.nebula.widgets.nattable.data.IDataProvider;
+import org.eclipse.nebula.widgets.nattable.data.convert.DefaultDisplayConverter;
 import org.eclipse.nebula.widgets.nattable.data.convert.IDisplayConverter;
+import org.eclipse.nebula.widgets.nattable.data.validate.ContextualDataValidator;
+import org.eclipse.nebula.widgets.nattable.data.validate.ValidationFailedException;
 import org.eclipse.nebula.widgets.nattable.edit.EditConfigAttributes;
+import org.eclipse.nebula.widgets.nattable.edit.action.MouseEditAction;
+import org.eclipse.nebula.widgets.nattable.edit.config.RenderErrorHandling;
 import org.eclipse.nebula.widgets.nattable.edit.editor.ICellEditor;
+import org.eclipse.nebula.widgets.nattable.edit.editor.TextCellEditor;
+import org.eclipse.nebula.widgets.nattable.grid.GridRegion;
 import org.eclipse.nebula.widgets.nattable.grid.data.DefaultCornerDataProvider;
 import org.eclipse.nebula.widgets.nattable.grid.layer.ColumnHeaderLayer;
 import org.eclipse.nebula.widgets.nattable.grid.layer.CornerLayer;
 import org.eclipse.nebula.widgets.nattable.grid.layer.GridLayer;
 import org.eclipse.nebula.widgets.nattable.grid.layer.RowHeaderLayer;
 import org.eclipse.nebula.widgets.nattable.layer.DataLayer;
+import org.eclipse.nebula.widgets.nattable.layer.ILayerListener;
 import org.eclipse.nebula.widgets.nattable.layer.LabelStack;
 import org.eclipse.nebula.widgets.nattable.layer.cell.AggregateConfigLabelAccumulator;
 import org.eclipse.nebula.widgets.nattable.layer.cell.IConfigLabelAccumulator;
 import org.eclipse.nebula.widgets.nattable.layer.cell.ILayerCell;
 import org.eclipse.nebula.widgets.nattable.layer.config.DefaultRowHeaderLayerConfiguration;
+import org.eclipse.nebula.widgets.nattable.layer.event.CellVisualChangeEvent;
+import org.eclipse.nebula.widgets.nattable.layer.event.CellVisualUpdateEvent;
+import org.eclipse.nebula.widgets.nattable.layer.event.ILayerEvent;
 import org.eclipse.nebula.widgets.nattable.layer.stack.DefaultBodyLayerStack;
 import org.eclipse.nebula.widgets.nattable.painter.cell.ICellPainter;
 import org.eclipse.nebula.widgets.nattable.painter.cell.decorator.PaddingDecorator;
@@ -61,6 +72,7 @@ import org.eclipse.nebula.widgets.nattable.style.IStyle;
 import org.eclipse.nebula.widgets.nattable.style.Style;
 import org.eclipse.nebula.widgets.nattable.ui.action.IMouseAction;
 import org.eclipse.nebula.widgets.nattable.ui.binding.UiBindingRegistry;
+import org.eclipse.nebula.widgets.nattable.ui.matcher.CellEditorMouseEventMatcher;
 import org.eclipse.nebula.widgets.nattable.ui.matcher.MouseEventMatcher;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
@@ -84,6 +96,8 @@ import org.eclipse.ui.forms.widgets.Section;
 public class GridEditorPage extends AbstractTestEditorFormPage implements SegmentSelectable, IActionBarsPopulator {
 
 	private static final String ID = "grid";
+
+	private static final String ROW_HEADER_EDIT_LABEL = "ROW_HEADER_EDIT";
 
 	private ComboViewer cvSegment;
 
@@ -165,7 +179,22 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		// build row stack
 		DataLayer rowHeaderData = new DataLayer(new GridRowHeaderProvider(testData));
 		RowHeaderLayer rowHeader = new RowHeaderLayer(rowHeaderData, bodyLayer, bodyLayer.getSelectionLayer(), false);
+		rowHeaderData.setConfigLabelAccumulator(new IConfigLabelAccumulator() {
+			@Override
+			public void accumulateConfigLabels(LabelStack configLabels, int columnPosition, int rowPosition) {
+				configLabels.addLabelOnTop(ROW_HEADER_EDIT_LABEL);
+			}
+		});
 		rowHeader.addConfiguration(new NoResizeRowHeaderLayerConfiguration());
+		rowHeaderData.addLayerListener(new ILayerListener() {
+			@Override
+			public void handleLayerEvent(ILayerEvent event) {
+				if ((event instanceof CellVisualUpdateEvent) || (event instanceof CellVisualChangeEvent)) {
+					// recalculate widths
+					refreshGrid();
+				}
+			}
+		});
 		
 		// build column stack
 		DataLayer columnHeaderData = new DataLayer(new GridColumnHeaderProvider());
@@ -194,6 +223,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		ICellPainter painter = grid.getConfigRegistry().getConfigAttribute(CellConfigAttributes.CELL_PAINTER, DisplayMode.NORMAL);
 		PaddingDecorator padder = new PaddingDecorator(painter);
 		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.CELL_PAINTER, padder);
+		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new DefaultDisplayConverter(),
+				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
 		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new GridLabelProvider());
 
 		CellScriptMarker marker = new CellScriptMarker(dataLayer.getDataProvider());
@@ -217,6 +248,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE,
 				DisplayMode.EDIT, "EDITABLE_VALUE");
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE,
+				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR,
 				new GridFieldValueCellEditor(this, new RefreshFieldHandler() {
 					@Override
@@ -226,6 +259,12 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 					}
 				}),
 				DisplayMode.EDIT, "EDITABLE_VALUE");
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new TextCellEditor(),
+				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.DATA_VALIDATOR, new ConfigNameDataValidator(),
+				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.VALIDATION_ERROR_HANDLER,
+				new RenderErrorHandling(), DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
 
 		refreshContents();
 	}
@@ -261,7 +300,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		}
 		gc.dispose();
 		DataLayer dl = (DataLayer) rhl.getBaseLayer();
-		dl.setDefaultColumnWidth(Math.max(200, width + 10));
+		dl.setDefaultColumnWidth(Math.max(300, width + 10));
 	}
 
 	@Override
@@ -494,7 +533,9 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		@Override
 		public void setDataValue(int columnIndex, int rowIndex, Object newValue) {
-			throw new UnsupportedOperationException();
+			if (newValue != null && !"".equals(newValue.toString().trim())) {
+				testData.getConfigurations()[rowIndex].setName(newValue.toString());
+			}
 		}
 
 		@Override
@@ -599,8 +640,15 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 	private static class NoResizeRowHeaderLayerConfiguration extends DefaultRowHeaderLayerConfiguration {
 		@Override
 		protected void addRowHeaderUIBindings() {
-			// no bindings
 		}
+
+		@Override
+		public void configureUiBindings(UiBindingRegistry uiBindingRegistry) {
+			super.configureUiBindings(uiBindingRegistry);
+			uiBindingRegistry.registerSingleClickBinding(new CellEditorMouseEventMatcher(GridRegion.ROW_HEADER),
+					new MouseEditAction());
+		}
+
 	}
 
 	private static class OpenReferenceMouseEventMatcher extends MouseEventMatcher {
@@ -716,6 +764,30 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		@Override
 		public boolean isEnabled() {
 			return ClipboardUtil.canPasteFromClipboard(clipboard);
+		}
+
+	}
+
+	private class ConfigNameDataValidator extends ContextualDataValidator {
+
+		@Override
+		public boolean validate(ILayerCell cell, IConfigRegistry configRegistry, Object newValue) {
+			// get all config names; remove old value
+			List<String> configNames = new ArrayList<String>();
+			for (ITestDataConfiguration config : getEditor().getTestDataModel().getConfigurations()) {
+				configNames.add(config.getName());
+			}
+			configNames.remove(cell.getDataValue());
+
+			// delegate to VisualDataEditorPage helper
+			VisualDataEditorPage.ConfigNameValidator delegate = new VisualDataEditorPage.ConfigNameValidator(configNames);
+
+			String errorMessage = delegate.isValid(newValue == null ? "" : newValue.toString());
+			if (errorMessage != null) {
+				throw new ValidationFailedException(errorMessage);
+			}
+
+			return true;
 		}
 
 	}
