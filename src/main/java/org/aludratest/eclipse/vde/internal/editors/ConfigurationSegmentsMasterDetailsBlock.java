@@ -1,11 +1,16 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aludratest.eclipse.vde.internal.VdeImage;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfiguration;
 import org.aludratest.eclipse.vde.internal.model.TestDataConfigurationSegment;
 import org.aludratest.eclipse.vde.model.ITestData;
 import org.aludratest.eclipse.vde.model.ITestDataConfiguration;
 import org.aludratest.eclipse.vde.model.ITestDataConfigurationSegment;
+import org.aludratest.eclipse.vde.model.ITestDataMetadata;
+import org.aludratest.eclipse.vde.model.ITestDataSegmentMetadata;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -16,6 +21,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.MenuEvent;
@@ -104,6 +110,7 @@ public class ConfigurationSegmentsMasterDetailsBlock extends MasterDetailsBlock 
 
 		tvSegments.setContentProvider(new TestDataConfigSegmentContentProvider());
 		tvSegments.setLabelProvider(new TestDataConfigSegmentLabelProvider());
+		tvSegments.setComparator(new SegmentsViewerComparator());
 
 		tvSegments.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -259,5 +266,33 @@ public class ConfigurationSegmentsMasterDetailsBlock extends MasterDetailsBlock 
 
 	}
 
+	private class SegmentsViewerComparator extends ViewerComparator {
+
+		private List<String> metadataSegmentOrder = new ArrayList<String>();
+
+		@Override
+		public void sort(Viewer viewer, Object[] elements) {
+			ITestDataMetadata metadata = getTestDataModel().getMetaData();
+			metadataSegmentOrder.clear();
+
+			for (ITestDataSegmentMetadata seg : metadata.getSegments()) {
+				metadataSegmentOrder.add(seg.getName());
+			}
+
+			super.sort(viewer, elements);
+		}
+
+		@Override
+		public int compare(Viewer viewer, Object e1, Object e2) {
+			if ((e1 instanceof ITestDataConfigurationSegment) && (e2 instanceof ITestDataConfigurationSegment)) {
+				String s1 = ((ITestDataConfigurationSegment) e1).getName();
+				String s2 = ((ITestDataConfigurationSegment) e2).getName();
+
+				return metadataSegmentOrder.indexOf(s1) - metadataSegmentOrder.indexOf(s2);
+			}
+
+			return super.compare(viewer, e1, e2);
+		}
+	}
 
 }
