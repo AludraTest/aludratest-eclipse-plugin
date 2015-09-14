@@ -4,7 +4,7 @@
     <properties size='1'>
         <property name='p2.atomic.composite.loading' value='true'/>
     </properties>
-    <children size='8'>
+    <children size='9'>
         <child location='0.4.0'/>
         <child location='0.5.0'/>
         <child location='0.5.1'/>
@@ -12,6 +12,7 @@
         <child location='0.5.3'/>
         <child location='0.5.4'/>
         <child location='0.6.0'/>
+        <child location='0.6.1'/>
         <child location='nattable'/>
     </children>
 </repository>
