@@ -227,7 +227,7 @@ public class SegmentsMasterDetailsBlock extends MasterDetailsBlock {
 
 		if (dataType != null) {
 			try {
-				for (IField field : dataType.getFields()) {
+				for (IField field : TestDataCore.getDataClassFields(dataType)) {
 					if (TestDataCore.isProperty(field)) {
 						segment.addField();
 						ITestDataFieldMetadata metaField = ArrayUtil.lastElement(segment.getFields());

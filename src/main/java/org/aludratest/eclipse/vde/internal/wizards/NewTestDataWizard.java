@@ -230,7 +230,7 @@ public class NewTestDataWizard extends Wizard implements INewWizard {
 			throws JavaModelException {
 		String segmentName = segment.getName();
 
-		for (IField field : dataType.getFields()) {
+		for (IField field : TestDataCore.getDataClassFields(dataType)) {
 			if (TestDataCore.isProperty(field)) {
 				segment.addField();
 				ITestDataFieldMetadata metaField = ArrayUtil.lastElement(segment.getFields());

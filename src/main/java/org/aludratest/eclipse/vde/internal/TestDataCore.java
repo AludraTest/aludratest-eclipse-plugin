@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -145,7 +146,7 @@ public final class TestDataCore {
 			}
 
 			// check for fields in Data class, but not in metadata
-			for (IField field : tp.getFields()) {
+			for (IField field : getDataClassFields(tp)) {
 				if (isProperty(field)) {
 					// check for type difference
 					StringBuilder sb = new StringBuilder();
@@ -179,7 +180,7 @@ public final class TestDataCore {
 
 			// check for fields in metadata, but not in Data class
 			for (ITestDataFieldMetadata field : segment.getFields()) {
-				IField javaField = tp.getField(field.getName());
+				IField javaField = getDataClassField(tp, field.getName());
 				if (javaField == null || !javaField.exists()) {
 					result.add(new TestDataModelDiff(segment.getName(), field.getName(), null, null, DiffType.MISSING_IN_CLASS));
 				}
@@ -253,6 +254,53 @@ public final class TestDataCore {
 
 	public static IType findDataClass(IResource projectResource) {
 		return findClass(projectResource, Data.class.getName());
+	}
+
+	public static IField[] getDataClassFields(IType dataType) throws JavaModelException {
+		List<IField> result = new ArrayList<IField>();
+		result.addAll(Arrays.asList(dataType.getFields()));
+
+		if (dataType.getSuperclassTypeSignature() != null) {
+			String superTypeName = SignatureUtil.getFullyQualifiedSignatureType(dataType.getTypeRoot(),
+					dataType.getSuperclassTypeSignature());
+			if (superTypeName != null && !Object.class.getName().equals(superTypeName)
+					&& !Data.class.getName().equals(superTypeName)) {
+				try {
+					IType superType = ((IJavaProject) dataType.getAncestor(IJavaElement.JAVA_PROJECT)).findType(superTypeName);
+					result.addAll(0, Arrays.asList(getDataClassFields(superType)));
+				}
+				catch (JavaModelException e) {
+					// OK, ignore type
+				}
+			}
+		}
+
+		return result.toArray(new IField[0]);
+	}
+
+	private static IField getDataClassField(IType dataType, String fieldName) throws JavaModelException {
+		IField field = dataType.getField(fieldName);
+		if (field != null && field.exists()) {
+			return field;
+		}
+
+		if (dataType.getSuperclassTypeSignature() != null) {
+			String superTypeName = SignatureUtil.getFullyQualifiedSignatureType(dataType.getTypeRoot(),
+					dataType.getSuperclassTypeSignature());
+			if (superTypeName != null && !Object.class.getName().equals(superTypeName)
+					&& !Data.class.getName().equals(superTypeName)) {
+				try {
+					IType superType = ((IJavaProject) dataType.getAncestor(IJavaElement.JAVA_PROJECT)).findType(superTypeName);
+					return getDataClassField(superType, fieldName);
+				}
+				catch (JavaModelException e) {
+					// OK, ignore type
+					return null;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public static void applyFieldType(IField javaField, ITestDataFieldMetadata metaField) throws JavaModelException {

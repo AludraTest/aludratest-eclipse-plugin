@@ -55,11 +55,6 @@ public class NewTestDataWizardPage extends WizardPage {
 
 	private IType testClass;
 
-	/**
-	 * Constructor for SampleNewWizardPage.
-	 * 
-	 * @param pageName
-	 */
 	public NewTestDataWizardPage(ISelection selection) {
 		super("wizardPage");
 		setTitle("Create Test Data File");
