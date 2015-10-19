@@ -153,6 +153,9 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				tiDelete.setEnabled(!sel.isEmpty());
 				tiEdit.setEnabled(!sel.isEmpty());
 				tiIgnore.setEnabled(!sel.isEmpty());
+				boolean ignore = !sel.isEmpty() && (obj instanceof TestDataConfiguration)
+						&& ((TestDataConfiguration) obj).isIgnored();
+				tiIgnore.setSelection(ignore);
 				tiDuplicate.setEnabled(!sel.isEmpty());
 			}
 		});
