@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -61,6 +62,8 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 	private ITestData testData;
 
 	private DOMDocumentProvider documentProvider = new TestDataEditorDOMDocumentProvider();
+
+	private IFile inputFile;
 
 	/**
 	 * Creates a multi-page editor example.
@@ -168,12 +171,12 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 			throw new PartInitException("Invalid Input: Must be IFileEditorInput");
 
 		// check input for valid testdata XML
-		IFile file = ((IFileEditorInput) editorInput).getFile();
+		inputFile = ((IFileEditorInput) editorInput).getFile();
 
 		InputStream in = null;
 		try {
-			in = file.getContents();
-			IContentDescription description = Platform.getContentTypeManager().getDescriptionFor(in, file.getName(), null);
+			in = inputFile.getContents();
+			IContentDescription description = Platform.getContentTypeManager().getDescriptionFor(in, inputFile.getName(), null);
 			if (!"Test Data".equals(description.getContentType().getName())) {
 				throw new PartInitException(
 						"Unsupported content type for Test Data Editor. Please open with XML editor and verify file is valid Test Data XML file.");
@@ -239,6 +242,21 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 				}
 			});
 		}
+
+		IResourceDelta delta = event.getDelta();
+		if (delta != null && inputFile != null) {
+			delta = delta.findMember(inputFile.getFullPath());
+			if (delta != null) {
+				if (delta.getKind() == IResourceDelta.REMOVED) {
+					handleFileRemoved();
+				}
+				else if (delta.getKind() == IResourceDelta.CHANGED) {
+					// TODO reload file contents to editor
+					// perhaps not necessary due to indirect XML model
+				}
+			}
+		}
+
 	}
 
 	protected ITestData getTestDataModel() {
@@ -260,6 +278,15 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 				gridPage.refreshContents();
 				break;
 		}
+	}
+
+	private void handleFileRemoved() {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				close(false);
+			}
+		});
 	}
 
 	private IDocument getDocument() {
@@ -322,4 +349,5 @@ public class TestDataEditor extends FormEditor implements IResourceChangeListene
 		}
 
 	}
+
 }
