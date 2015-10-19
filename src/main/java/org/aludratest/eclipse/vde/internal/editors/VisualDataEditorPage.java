@@ -166,6 +166,11 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		configurationSegments = new ConfigurationSegmentsMasterDetailsBlock();
 		configurationSegments.createContent(managedForm, cpo);
 
+		ITestDataConfiguration[] configs = (ITestDataConfiguration[]) cvConfig.getInput();
+		if (configs != null && configs.length > 0) {
+			cvConfig.setSelection(new StructuredSelection(configs[0]));
+		}
+
 		section.setClient(c);
 	}
 
