@@ -49,6 +49,15 @@ public class TestDataSegmentMetadata extends AbstractModelNode implements ITestD
 			}
 		}
 
+		// update all sub-segments
+		String prefix = oldName + ".";
+		for (ITestDataSegmentMetadata segment : metadata.getSegments()) {
+			String prevName = segment.getName();
+			if (prevName.startsWith(prefix)) {
+				segment.setName(name + "." + prevName.substring(prefix.length()));
+			}
+		}
+
 		// update all associated configuration segments
 		ITestData testData = (ITestData) getParentNode().getParentNode();
 
