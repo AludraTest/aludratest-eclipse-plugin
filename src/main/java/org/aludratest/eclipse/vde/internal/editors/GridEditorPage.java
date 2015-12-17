@@ -255,6 +255,21 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 					@Override
 					public void update(ITestDataFieldValue field) {
 						// unoptimized, but effective
+
+						// find cell to remove from cache
+						for (int row = 0; row < dataLayer.getRowCount(); row++) {
+							for (int col = 0; col < dataLayer.getColumnCount(); col++) {
+								Object o = dataLayer.getDataValue(col, row);
+								if (o instanceof CellInfo) {
+									CellInfo ci = (CellInfo) o;
+									if (ci.getFieldValue() == field) {
+										// just clear cache for this field
+										dataLayer.setDataValue(col, row, null);
+									}
+								}
+							}
+						}
+
 						grid.refresh();
 					}
 				}),
@@ -735,16 +750,21 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 						@Override
 						public void accept(int columnIndex, int rowIndex, String value, boolean script) {
 							ILayerCell cell = selectionLayer.getCellByPosition(columnIndex, rowIndex);
-							CellInfo info = (CellInfo) cell.getDataValue();
-							if (info != null && info.getFieldValue() != null) {
-								IFieldValue fv = info.fieldValue.getFieldValue();
-								if (fv != null && fv.getValueType() == IFieldValue.TYPE_STRING) {
-									((IStringValue) fv).setValue(value);
-									info.fieldValue.setScript(script);
+							// cell could e.g. be null if pasted data is more than selection (which is OK)
+							if (cell != null) {
+								CellInfo info = (CellInfo) cell.getDataValue();
+								if (info != null && info.getFieldValue() != null) {
+									IFieldValue fv = info.fieldValue.getFieldValue();
+									if (fv != null && fv.getValueType() == IFieldValue.TYPE_STRING) {
+										((IStringValue) fv).setValue(value);
+										info.fieldValue.setScript(script);
+									}
+									// force update in data layer
+									dataLayer.getDataProvider().setDataValue(columnIndex, rowIndex, value);
 								}
-							}
-							else {
-								// should never be null, only for referencing cells which cannot be set
+								else {
+									// should never be null, only for referencing cells which cannot be set
+								}
 							}
 						}
 					});
