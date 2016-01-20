@@ -184,7 +184,7 @@ public class StringEditorDialog extends TitleAreaDialog {
 			setValueToPlainValueControl(val == null ? "" : val);
 		}
 		else {
-			txtScript.setText(val);
+			txtScript.setText(val == null ? "" : val);
 		}
 
 		updatePreview();
