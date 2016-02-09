@@ -158,7 +158,11 @@ public class UpdateDataClassRefactoring extends RefactoringParticipant {
 		}
 
 		IJavaProject project = javaType.getJavaProject();
-		IJavaSearchScope scope = SearchEngine.createHierarchyScope(TestDataCore.findDataClass(project.getResource()));
+		IType dataClass = TestDataCore.findDataClass(project.getResource());
+		if (dataClass == null) {
+			return false;
+		}
+		IJavaSearchScope scope = SearchEngine.createHierarchyScope(dataClass);
 		return scope.encloses(javaType);
 	}
 
