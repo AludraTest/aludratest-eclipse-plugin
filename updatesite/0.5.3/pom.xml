@@ -25,6 +25,12 @@
       		<url>http://download.eclipse.org/nattable/releases/1.3.0/repository</url>
       		<layout>p2</layout>
      	</repository>
+     	<!-- also include already existing AludraTest update site for previous releases (features) -->
+     	<repository>
+     		<id>p2-eclipse-aludratest</id>
+     		<url>http://aludratest.github.io/aludratest-eclipse-plugin/updatesite</url>
+     		<layout>p2</layout>
+     	</repository>
 	</repositories>
 
 	<build>
