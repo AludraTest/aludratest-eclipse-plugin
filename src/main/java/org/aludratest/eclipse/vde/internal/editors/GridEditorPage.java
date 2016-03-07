@@ -262,7 +262,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 								Object o = dataLayer.getDataValue(col, row);
 								if (o instanceof CellInfo) {
 									CellInfo ci = (CellInfo) o;
-									if (ci.getFieldValue() == field) {
+									if (ci.getFieldValueWithoutCreate() == field) {
 										// just clear cache for this field
 										dataLayer.setDataValue(col, row, null);
 									}
@@ -615,6 +615,13 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		public CellInfo(String displayText, ITestDataConfigurationSegment configSegment, String fieldName) {
 			this.configSegment = configSegment;
 			this.fieldName = fieldName;
+		}
+
+		public ITestDataFieldValue getFieldValueWithoutCreate() {
+			if (fieldValue == null && configSegment != null && fieldName != null) {
+				fieldValue = configSegment.getFieldValue(fieldName, false);
+			}
+			return fieldValue;
 		}
 
 		public ITestDataFieldValue getFieldValue() {
