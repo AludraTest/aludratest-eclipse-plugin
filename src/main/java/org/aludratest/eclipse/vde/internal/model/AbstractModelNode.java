@@ -14,6 +14,7 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
+import org.databene.commons.Filter;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.wst.xml.core.internal.cleanup.ElementNodeCleanupHandler;
@@ -327,6 +328,11 @@ public abstract class AbstractModelNode implements XmlTagNames {
 
 	protected final <A, T extends AbstractModelNode> A[] getChildObjects(Class<T> objectClass, A[] emptyArray,
 			String wrapperElementName) {
+		return getChildObjects(objectClass, emptyArray, wrapperElementName, null);
+	}
+
+	protected final <A, T extends AbstractModelNode> A[] getChildObjects(Class<T> objectClass, A[] emptyArray,
+			String wrapperElementName, Filter<Element> elementFilter) {
 		// create a prototype to get element name
 		Constructor<T> cstr;
 		T prototype;
@@ -362,7 +368,9 @@ public abstract class AbstractModelNode implements XmlTagNames {
 			List<T> result = new ArrayList<T>(nl.size());
 			for (int i = 0; i < nl.size(); i++) {
 				try {
-					result.add(cstr.newInstance(this, wrapperElementName, i));
+					if (elementFilter == null || elementFilter.accept(nl.get(i))) {
+						result.add(cstr.newInstance(this, wrapperElementName, i));
+					}
 				}
 				catch (Exception e) {
 					throw new RuntimeException(e);

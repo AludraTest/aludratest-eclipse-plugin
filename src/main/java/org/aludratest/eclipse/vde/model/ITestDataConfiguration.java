@@ -6,6 +6,8 @@ public interface ITestDataConfiguration {
 
 	public ITestDataConfigurationSegment[] getSegments();
 
+	public ITestDataConfigurationSegment getSegment(String name);
+
 	public void setName(String name);
 
 	public boolean isIgnored();

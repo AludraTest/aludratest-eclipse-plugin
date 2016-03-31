@@ -250,29 +250,22 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 				DisplayMode.EDIT, "EDITABLE_VALUE");
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE,
 				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
-		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR,
-				new GridFieldValueCellEditor(this, new RefreshFieldHandler() {
-					@Override
-					public void update(ITestDataFieldValue field) {
-						// unoptimized, but effective
 
-						// find cell to remove from cache
-						for (int row = 0; row < dataLayer.getRowCount(); row++) {
-							for (int col = 0; col < dataLayer.getColumnCount(); col++) {
-								Object o = dataLayer.getDataValue(col, row);
-								if (o instanceof CellInfo) {
-									CellInfo ci = (CellInfo) o;
-									if (ci.getFieldValueWithoutCreate() == field) {
-										// just clear cache for this field
-										dataLayer.setDataValue(col, row, null);
-									}
-								}
-							}
-						}
+		// some hack due to (my) bad API
+		final GridFieldValueCellEditor[] editorArray = new GridFieldValueCellEditor[1];
+		final GridFieldValueCellEditor editor = new GridFieldValueCellEditor(this, new RefreshFieldHandler() {
+			@Override
+			public void update(ITestDataFieldValue field) {
+				int row = editorArray[0].getRowIndex();
+				int col = editorArray[0].getColumnIndex();
+				// just clear cache for this field
+				dataLayer.setDataValue(col, row, null);
+				grid.refresh();
+			}
+		});
+		editorArray[0] = editor;
 
-						grid.refresh();
-					}
-				}),
+		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, editor,
 				DisplayMode.EDIT, "EDITABLE_VALUE");
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITOR, new TextCellEditor(),
 				DisplayMode.EDIT, ROW_HEADER_EDIT_LABEL);
@@ -366,33 +359,32 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			return new CellInfo(true, "(" + refSegName + ")", null, new SegmentReference(refSegName));
 		}
 
-		for (ITestDataConfigurationSegment configSegment : config.getSegments()) {
-			if (configSegment.getName().equals(segmentName)) {
-				ITestDataFieldValue field = configSegment.getFieldValue(fieldName, false);
+		ITestDataConfigurationSegment configSegment = config.getSegment(segmentName);
+		if (configSegment != null) {
+			ITestDataFieldValue field = configSegment.getFieldValue(fieldName, false);
 
-				if (field == null) {
-					if (meta != null && meta.getType() == TestDataFieldType.STRING_LIST) {
-						return new CellInfo("[]", configSegment, fieldName);
-					}
-
-					return new CellInfo("", configSegment, fieldName);
+			if (field == null) {
+				if (meta != null && meta.getType() == TestDataFieldType.STRING_LIST) {
+					return new CellInfo("[]", configSegment, fieldName);
 				}
 
-				IFieldValue fv = field.getFieldValue();
-				if (fv.getValueType() == IFieldValue.TYPE_STRING) {
-					String value = ((IStringValue) fv).getValue();
-					if (value == null) {
-						value = "";
-					}
-					return new CellInfo(false, value, field, null);
+				return new CellInfo("", configSegment, fieldName);
+			}
+
+			IFieldValue fv = field.getFieldValue();
+			if (fv.getValueType() == IFieldValue.TYPE_STRING) {
+				String value = ((IStringValue) fv).getValue();
+				if (value == null) {
+					value = "";
 				}
-				if (fv.getValueType() == IFieldValue.TYPE_STRING_LIST) {
-					List<String> values = new ArrayList<String>();
-					for (IStringValue value : ((IStringListValue) fv).getValues()) {
-						values.add(value.getValue());
-					}
-					return new CellInfo(false, values.toString(), field, null);
+				return new CellInfo(false, value, field, null);
+			}
+			if (fv.getValueType() == IFieldValue.TYPE_STRING_LIST) {
+				List<String> values = new ArrayList<String>();
+				for (IStringValue value : ((IStringListValue) fv).getValues()) {
+					values.add(value.getValue());
 				}
+				return new CellInfo(false, values.toString(), field, null);
 			}
 		}
 

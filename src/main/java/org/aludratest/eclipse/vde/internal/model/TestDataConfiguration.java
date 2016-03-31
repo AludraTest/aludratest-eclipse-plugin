@@ -1,12 +1,15 @@
 package org.aludratest.eclipse.vde.internal.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.aludratest.eclipse.vde.model.ITestDataConfiguration;
 import org.aludratest.eclipse.vde.model.ITestDataConfigurationSegment;
 import org.aludratest.eclipse.vde.model.ITestDataMetadata;
 import org.aludratest.eclipse.vde.model.ITestDataSegmentMetadata;
+import org.databene.commons.Filter;
 import org.w3c.dom.Element;
 
 public class TestDataConfiguration extends AbstractModelNode implements ITestDataConfiguration {
@@ -56,14 +59,40 @@ public class TestDataConfiguration extends AbstractModelNode implements ITestDat
 		return getChildObjects(TestDataConfigurationSegment.class, new ITestDataConfigurationSegment[0], SEGMENTS);
 	}
 
+	@Override
+	public ITestDataConfigurationSegment getSegment(final String name) {
+		if (name == null) {
+			return null;
+		}
+
+		Filter<Element> elementFilter = new Filter<Element>() {
+			@Override
+			public boolean accept(Element element) {
+				return name.equals(element.getAttribute("name"));
+			}
+		};
+
+		ITestDataConfigurationSegment[] segments = getChildObjects(TestDataConfigurationSegment.class,
+				new ITestDataConfigurationSegment[0], SEGMENTS, elementFilter);
+		return segments == null || segments.length == 0 ? null : segments[0];
+	}
+
 	public void syncToMetadata(ITestDataMetadata metadata) {
 		Set<String> metadataSegments = new HashSet<String>();
+
+		// a small optimization for VERY large files
+		ITestDataConfigurationSegment[] configSegments = getSegments();
+		Map<ITestDataConfigurationSegment, String> configSegmentNames = new HashMap<ITestDataConfigurationSegment, String>();
 
 		for (ITestDataSegmentMetadata segment : metadata.getSegments()) {
 			String segmentName = segment.getName();
 			boolean found = false;
-			for (ITestDataConfigurationSegment configSegment : getSegments()) {
-				if (configSegment.getName().equals(segmentName) && (configSegment instanceof TestDataConfigurationSegment)) {
+			for (ITestDataConfigurationSegment configSegment : configSegments) {
+				String configSegmentName = configSegmentNames.get(configSegment);
+				if (configSegmentName == null) {
+					configSegmentNames.put(configSegment, configSegmentName = configSegment.getName());
+				}
+				if (configSegmentName.equals(segmentName) && (configSegment instanceof TestDataConfigurationSegment)) {
 					((TestDataConfigurationSegment) configSegment).syncToMetadata(segment);
 					found = true;
 					break;
