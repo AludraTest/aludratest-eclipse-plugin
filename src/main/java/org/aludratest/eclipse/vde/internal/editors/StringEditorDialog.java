@@ -351,7 +351,8 @@ public class StringEditorDialog extends TitleAreaDialog {
 		}
 		if (fieldType == TestDataFieldType.DATE) {
 			DateTime dtPlainValue = (DateTime) plainValueControl;
-			return dtPlainValue.getYear() + "-" + toTwoDigits(dtPlainValue.getMonth() + 1) + "-" + dtPlainValue.getDay();
+			return dtPlainValue.getYear() + "-" + toTwoDigits(dtPlainValue.getMonth() + 1) + "-"
+					+ toTwoDigits(dtPlainValue.getDay());
 		}
 
 		return null;
