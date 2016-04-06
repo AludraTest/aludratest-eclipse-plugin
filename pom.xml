@@ -62,8 +62,8 @@
 								<artifactItem>
 									<groupId>org.aludratest</groupId>
 									<artifactId>aludratest</artifactId>
-									<version>3.0.0</version>
-									<destFileName>aludratest-3.0.0.jar</destFileName>
+									<version>3.0.2</version>
+									<destFileName>aludratest-3.0.2.jar</destFileName>
 								</artifactItem>
 								<artifactItem>
 									<groupId>org.databene</groupId>

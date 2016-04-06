@@ -63,8 +63,8 @@
 			description="Returns the minutes of the hour of a date (0-59)." 
 			scriptToInsert="new Date().getMinutes()" />
 		<function name="parse" 
-			description="Parses a given date string." 
-			scriptToInsert="new Date(Date.parse('2015-01-20'))" />
+			description="Parses a given date string. The string must be in full ISO8601 or RFC2822 notation." 
+			scriptToInsert="new Date(Date.parse('2015-01-20T16:12:58.000Z'))" />
 		<function name="format"
 			description="Formats a Date to a string using a given format."
 			scriptToInsert="new Date().format('dd-mmm-yyyy HH:MM')" />
