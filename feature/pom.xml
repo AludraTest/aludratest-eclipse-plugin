@@ -5,7 +5,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.aludratest.eclipse</groupId>
 	<artifactId>org.aludratest.eclipse.vde.feature</artifactId>
-	<version>0.6.4.qualifier</version>
+	<version>0.6.5.qualifier</version>
 	<name>AludraTest Eclipse Visual Data Editor P2 Feature</name>
 	<description>The Eclipse Feature for the AludraTest Visual Data Editor.</description>
 

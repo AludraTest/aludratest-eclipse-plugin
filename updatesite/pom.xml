@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.aludratest.eclipse</groupId>
 	<artifactId>org.aludratest.eclipse.vde.site</artifactId>
-	<version>0.6.4.qualifier</version>
+	<version>0.6.5.qualifier</version>
 	<name>AludraTest Eclipse Visual Data Editor P2 Update Site</name>
 	<description>Generates the composite P2 Update Site for AludraTest Eclipse Visual Data Editor.</description>
 
@@ -94,6 +94,11 @@
 								<resource>
 									<targetPath>0.6.4</targetPath>
 									<directory>0.6.4/target/repository</directory>
+									<filtering>false</filtering>
+								</resource>
+								<resource>
+									<targetPath>0.6.5</targetPath>
+									<directory>0.6.5/target/repository</directory>
 									<filtering>false</filtering>
 								</resource>
 								<!-- insert new folders here -->

@@ -2,7 +2,7 @@
 <feature
       id="org.aludratest.eclipse.vde.feature"
       label="AludraTest Visual Data Editor Feature"
-      version="0.6.4.qualifier"
+      version="0.6.5.qualifier"
       provider-name="AludraTest.org">
 
    <description url="https://github.com/AludraTest/aludratest-eclipse-plugin">
