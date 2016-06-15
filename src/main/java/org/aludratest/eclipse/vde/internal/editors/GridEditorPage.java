@@ -1,6 +1,7 @@
 package org.aludratest.eclipse.vde.internal.editors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 import org.aludratest.eclipse.vde.internal.content.ClipboardRegionDoesNotMatchException;
 import org.aludratest.eclipse.vde.internal.content.ClipboardUtil;
 import org.aludratest.eclipse.vde.internal.content.PasteStringValueAcceptor;
+import org.aludratest.eclipse.vde.internal.model.TestDataConfigurationSegment;
 import org.aludratest.eclipse.vde.model.IFieldValue;
 import org.aludratest.eclipse.vde.model.IStringListValue;
 import org.aludratest.eclipse.vde.model.IStringValue;
@@ -33,6 +35,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.nebula.widgets.nattable.NatTable;
 import org.eclipse.nebula.widgets.nattable.config.AbstractUiBindingConfiguration;
 import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
+import org.eclipse.nebula.widgets.nattable.config.DefaultNatTableStyleConfiguration;
 import org.eclipse.nebula.widgets.nattable.config.IConfigRegistry;
 import org.eclipse.nebula.widgets.nattable.config.IEditableRule;
 import org.eclipse.nebula.widgets.nattable.data.IDataProvider;
@@ -74,10 +77,13 @@ import org.eclipse.nebula.widgets.nattable.ui.action.IMouseAction;
 import org.eclipse.nebula.widgets.nattable.ui.binding.UiBindingRegistry;
 import org.eclipse.nebula.widgets.nattable.ui.matcher.CellEditorMouseEventMatcher;
 import org.eclipse.nebula.widgets.nattable.ui.matcher.MouseEventMatcher;
+import org.eclipse.nebula.widgets.nattable.ui.menu.PopupMenuBuilder;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
@@ -86,7 +92,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.forms.IManagedForm;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -107,6 +117,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 	private Color clYellow;
 
+	private Color clRed;
+
 	private Clipboard clipboard;
 
 	private DataLayer dataLayer;
@@ -114,12 +126,14 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 	public GridEditorPage(TestDataEditor editor) {
 		super(editor, ID, "Grid Editor");
 		clYellow = new Color(editor.getSite().getShell().getDisplay(), 255, 255, 219);
+		clRed = new Color(editor.getSite().getShell().getDisplay(), 255, 0, 0);
 		clipboard = new Clipboard(editor.getSite().getShell().getDisplay());
 	}
 
 	@Override
 	public void dispose() {
 		clYellow.dispose();
+		clRed.dispose();
 		clipboard.dispose();
 		super.dispose();
 	}
@@ -199,12 +213,23 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		// build column stack
 		DataLayer columnHeaderData = new DataLayer(new GridColumnHeaderProvider());
 		ColumnHeaderLayer columnHeader = new ColumnHeaderLayer(columnHeaderData, bodyLayer, bodyLayer.getSelectionLayer());
+		ErrorColumnMarker colMarker = new ErrorColumnMarker(columnHeaderData.getDataProvider());
+		AggregateConfigLabelAccumulator aggrCla = new AggregateConfigLabelAccumulator();
+		IConfigLabelAccumulator cla = columnHeader.getConfigLabelAccumulator();
+		if (cla != null) {
+			aggrCla.add(cla);
+		}
+		aggrCla.add(colMarker);
+		columnHeaderData.setConfigLabelAccumulator(aggrCla);
 
 		CornerLayer corner = new CornerLayer(new DataLayer(new DefaultCornerDataProvider(columnHeaderData.getDataProvider(),
 				rowHeaderData.getDataProvider())), rowHeader, columnHeader);
 
 		GridLayer gridLayer = new GridLayer(bodyLayer, columnHeader, rowHeader, corner);
-		grid = new NatTable(c, gridLayer);
+		grid = new NatTable(c, gridLayer, false);
+		grid.addConfiguration(new DefaultNatTableStyleConfiguration());
+		grid.addConfiguration(new ColumnHeaderMenuConfiguration());
+		grid.configure();
 
 		toolkit.adapt(grid);
 		toolkit.paintBordersFor(grid);
@@ -228,8 +253,8 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.DISPLAY_CONVERTER, new GridLabelProvider());
 
 		CellScriptMarker marker = new CellScriptMarker(dataLayer.getDataProvider());
-		AggregateConfigLabelAccumulator aggrCla = new AggregateConfigLabelAccumulator();
-		IConfigLabelAccumulator cla = bodyLayer.getConfigLabelAccumulator();
+		aggrCla = new AggregateConfigLabelAccumulator();
+		cla = bodyLayer.getConfigLabelAccumulator();
 		if (cla != null) {
 			aggrCla.add(cla);
 		}
@@ -245,6 +270,11 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		style.setAttributeValue(CellStyleAttributes.BACKGROUND_COLOR, clYellow);
 		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.CELL_STYLE, style, DisplayMode.NORMAL,
 				"SCRIPT_VALUE");
+
+		style = new Style();
+		style.setAttributeValue(CellStyleAttributes.FOREGROUND_COLOR, clRed);
+		grid.getConfigRegistry().registerConfigAttribute(CellConfigAttributes.CELL_STYLE, style, DisplayMode.NORMAL,
+				"ERROR_COLUMN");
 
 		grid.getConfigRegistry().registerConfigAttribute(EditConfigAttributes.CELL_EDITABLE_RULE, IEditableRule.ALWAYS_EDITABLE,
 				DisplayMode.EDIT, "EDITABLE_VALUE");
@@ -293,6 +323,10 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		grid.refresh();
 
 		GridLayer gl = (GridLayer) grid.getLayer();
+
+		// refresh column header
+		ColumnHeaderLayer chl = (ColumnHeaderLayer) gl.getColumnHeaderLayer();
+		((GridColumnHeaderProvider) ((DataLayer) chl.getBaseLayer()).getDataProvider()).refresh();
 
 		// auto-size row header
 		RowHeaderLayer rhl = (RowHeaderLayer) gl.getRowHeaderLayer();
@@ -345,13 +379,11 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		return null;
 	}
 
-	private CellInfo getCellInfo(ITestDataConfiguration config, ITestDataSegmentMetadata segment,
-			ITestDataFieldMetadata segmentField) {
+	private CellInfo getCellInfo(ITestDataConfiguration config, ITestDataSegmentMetadata segment, String fieldName) {
 		String segmentName = segment.getName();
-		String fieldName = segmentField.getName();
 		ITestDataFieldMetadata meta = getFieldMetadata(segment, fieldName);
 
-		if (meta != null && meta.getType() == TestDataFieldType.OBJECT || meta.getType() == TestDataFieldType.OBJECT_LIST) {
+		if (meta != null && (meta.getType() == TestDataFieldType.OBJECT || meta.getType() == TestDataFieldType.OBJECT_LIST)) {
 			String refSegName = segmentName + "." + fieldName;
 			if (meta.getType() == TestDataFieldType.OBJECT_LIST) {
 				refSegName += "-1";
@@ -389,6 +421,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		}
 
 		return null;
+
 	}
 
 	private void handleOpenReference(MouseEvent event) {
@@ -462,10 +495,14 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 				return cellInfoCache.get(pt);
 			}
 
-			ITestDataFieldMetadata field = segment.getFields()[columnIndex];
+			// to make things safe, get column header to determine field name
+			GridLayer gl = (GridLayer) grid.getLayer();
+			ColumnHeaderLayer chl = (ColumnHeaderLayer) gl.getColumnHeaderLayer();
+			String fieldName = (String) ((DataLayer) chl.getBaseLayer()).getDataProvider().getDataValue(columnIndex, 0);
+
 			ITestDataConfiguration config = testData.getConfigurations()[rowIndex];
 
-			CellInfo ci = getCellInfo(config, segment, field);
+			CellInfo ci = getCellInfo(config, segment, fieldName);
 			cellInfoCache.put(pt, ci);
 			return ci;
 		}
@@ -502,10 +539,13 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 	private class GridColumnHeaderProvider implements IDataProvider {
 
+		private String segmentName;
+
+		private List<String> cachedColumns;
+
 		@Override
 		public Object getDataValue(int columnIndex, int rowIndex) {
-			ITestDataSegmentMetadata segment = getSelectedSegment();
-			return segment == null ? null : segment.getFields()[columnIndex].getName();
+			return getConfigurationFieldsSuperset().get(columnIndex);
 		}
 
 		@Override
@@ -515,13 +555,57 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 		@Override
 		public int getColumnCount() {
-			ITestDataSegmentMetadata segment = getSelectedSegment();
-			return segment == null ? 0 : segment.getFields().length;
+			return getConfigurationFieldsSuperset().size();
 		}
 
 		@Override
 		public int getRowCount() {
 			return 1;
+		}
+
+		public void refresh() {
+			cachedColumns = null;
+		}
+
+		private List<String> getConfigurationFieldsSuperset() {
+			ITestDataSegmentMetadata segment = getSelectedSegment();
+			if (segment == null) {
+				return Collections.emptyList();
+			}
+			
+			String segmentName = segment.getName();
+			if (cachedColumns != null && segmentName.equals(this.segmentName)) {
+				return cachedColumns;
+			}
+
+			// first of all, collect fields from metadata
+			List<String> result = new ArrayList<String>();
+			for (ITestDataFieldMetadata field : segment.getFields()) {
+				result.add(field.getName());
+			}
+			
+			// now, add all "red" fields (not present in metadata)
+			List<String> errorFields = new ArrayList<String>();
+
+			ITestDataConfiguration[] configs = getTestDataModel().getConfigurations();
+			
+			for (ITestDataConfiguration config : configs) {
+				ITestDataConfigurationSegment configSegment = config.getSegment(segmentName);
+				if (configSegment == null) {
+					continue;
+				}
+
+				for (ITestDataFieldValue field : configSegment.getDefinedFieldValues()) {
+					String fn = field.getFieldName();
+					if (!result.contains(fn) && !errorFields.contains(fn)) {
+						errorFields.add(fn);
+					}
+				}
+			}
+			
+			result.addAll(0, errorFields);
+			this.segmentName = segmentName;
+			return cachedColumns = result;
 		}
 
 	}
@@ -649,6 +733,127 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			}
 		}
 
+	}
+
+	private class ErrorColumnMarker implements IConfigLabelAccumulator {
+
+		private IDataProvider dataProvider;
+
+		public ErrorColumnMarker(IDataProvider dataProvider) {
+			this.dataProvider = dataProvider;
+		}
+
+		@Override
+		public void accumulateConfigLabels(LabelStack configLabels, int columnPosition, int rowPosition) {
+			String segName = (String) dataProvider.getDataValue(columnPosition, rowPosition);
+			ITestDataSegmentMetadata segment = getSelectedSegment();
+
+			for (ITestDataFieldMetadata field : segment.getFields()) {
+				if (segName.equals(field.getName())) {
+					return;
+				}
+			}
+
+			// not found in segment; add error label
+			configLabels.addLabelOnTop("ERROR_COLUMN");
+		}
+
+	}
+
+	private class ColumnHeaderMenuConfiguration extends AbstractUiBindingConfiguration {
+
+		private Menu contextMenu;
+
+		public ColumnHeaderMenuConfiguration() {
+			contextMenu = createContextMenu(grid);
+		}
+
+		private Menu createContextMenu(NatTable natTable) {
+			Menu menu = new Menu(natTable);
+
+			MenuItem itemDelete = new MenuItem(menu, SWT.NONE);
+			itemDelete.setText("Delete from all configurations");
+
+			ISharedImages sharedImages = PlatformUI.getWorkbench().getSharedImages();
+			itemDelete.setImage(sharedImages.getImageDescriptor(ISharedImages.IMG_TOOL_DELETE).createImage());
+			itemDelete.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					MenuItem item = (MenuItem) e.widget;
+					Integer selectedColumn = (Integer) item.getParent().getData("selectedColumn");
+					if (selectedColumn != null) {
+						deleteFieldFromConfigurations(selectedColumn.intValue());
+					}
+				}
+			});
+
+			return new PopupMenuBuilder(natTable, menu).build();
+		}
+		
+		private void deleteFieldFromConfigurations(int selectedColumnIndex) {
+			// get name of that field
+			GridLayer gl = (GridLayer) grid.getLayer();
+			ColumnHeaderLayer chl = (ColumnHeaderLayer) gl.getColumnHeaderLayer();
+			String fieldName = (String) ((DataLayer) chl.getBaseLayer()).getDataProvider().getDataValue(selectedColumnIndex, 0);
+			if (fieldName != null) {
+				ITestDataSegmentMetadata segment = getSelectedSegment();
+				if (segment == null) {
+					return;
+				}
+				String segmentName = segment.getName();
+
+				for (ITestDataConfiguration config : getTestDataModel().getConfigurations()) {
+					ITestDataConfigurationSegment configSegment = config.getSegment(segmentName);
+					if (configSegment instanceof TestDataConfigurationSegment) {
+						ITestDataFieldValue fv = configSegment.getFieldValue(fieldName, false);
+						if (fv != null) {
+							((TestDataConfigurationSegment) configSegment).removeFieldValue(fv);
+						}
+					}
+				}
+			}
+
+			refreshGrid();
+		}
+
+		@Override
+		public void configureUiBindings(UiBindingRegistry uiBindingRegistry) {
+			MouseEventMatcher matcher = new MouseEventMatcher(SWT.NONE, GridRegion.COLUMN_HEADER, 3) {
+
+				@Override
+				public boolean matches(NatTable natTable, MouseEvent event, LabelStack regionLabels) {
+					if (!super.matches(natTable, event, regionLabels)) {
+						return false;
+					}
+					// cell at pos must contain the ERROR_COLUMN label
+					int col = natTable.getColumnPositionByX(event.x);
+					LabelStack cellLabels = natTable.getConfigLabelsByPosition(col, 0);
+
+					return cellLabels != null && cellLabels.hasLabel("ERROR_COLUMN");
+				}
+
+			};
+
+			uiBindingRegistry.registerMouseDownBinding(matcher, new ColumnHeaderPopupMenuAction(contextMenu));
+		}
+
+	}
+
+	private static class ColumnHeaderPopupMenuAction implements IMouseAction {
+
+		private final Menu menu;
+
+		public ColumnHeaderPopupMenuAction(Menu menu) {
+			this.menu = menu;
+		}
+
+		@Override
+		public void run(NatTable natTable, MouseEvent event) {
+			int col = natTable.getColumnPositionByX(event.x);
+			// mark which column it is - subtract 1 because of row header column
+			menu.setData("selectedColumn", Integer.valueOf(col - 1));
+			menu.setVisible(true);
+		}
 	}
 
 	private static class NoResizeRowHeaderLayerConfiguration extends DefaultRowHeaderLayerConfiguration {
