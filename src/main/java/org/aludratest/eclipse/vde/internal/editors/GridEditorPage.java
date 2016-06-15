@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.aludratest.eclipse.vde.internal.content.ClipboardRegionDoesNotMatchException;
 import org.aludratest.eclipse.vde.internal.content.ClipboardUtil;
@@ -38,6 +39,7 @@ import org.eclipse.nebula.widgets.nattable.config.CellConfigAttributes;
 import org.eclipse.nebula.widgets.nattable.config.DefaultNatTableStyleConfiguration;
 import org.eclipse.nebula.widgets.nattable.config.IConfigRegistry;
 import org.eclipse.nebula.widgets.nattable.config.IEditableRule;
+import org.eclipse.nebula.widgets.nattable.coordinate.Range;
 import org.eclipse.nebula.widgets.nattable.data.IDataProvider;
 import org.eclipse.nebula.widgets.nattable.data.convert.DefaultDisplayConverter;
 import org.eclipse.nebula.widgets.nattable.data.convert.IDisplayConverter;
@@ -229,6 +231,7 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 		grid = new NatTable(c, gridLayer, false);
 		grid.addConfiguration(new DefaultNatTableStyleConfiguration());
 		grid.addConfiguration(new ColumnHeaderMenuConfiguration());
+		grid.addConfiguration(new RowHeaderMenuConfiguration());
 		grid.configure();
 
 		toolkit.adapt(grid);
@@ -836,7 +839,6 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 
 			uiBindingRegistry.registerMouseDownBinding(matcher, new ColumnHeaderPopupMenuAction(contextMenu));
 		}
-
 	}
 
 	private static class ColumnHeaderPopupMenuAction implements IMouseAction {
@@ -852,6 +854,90 @@ public class GridEditorPage extends AbstractTestEditorFormPage implements Segmen
 			int col = natTable.getColumnPositionByX(event.x);
 			// mark which column it is - subtract 1 because of row header column
 			menu.setData("selectedColumn", Integer.valueOf(col - 1));
+			menu.setVisible(true);
+		}
+	}
+
+	private class RowHeaderMenuConfiguration extends AbstractUiBindingConfiguration {
+
+		private Menu contextMenu;
+
+		public RowHeaderMenuConfiguration() {
+			contextMenu = createContextMenu(grid);
+		}
+
+		private Menu createContextMenu(NatTable natTable) {
+			Menu menu = new Menu(natTable);
+
+			MenuItem itemDelete = new MenuItem(menu, SWT.NONE);
+			itemDelete.setText("Delete configuration(s)");
+
+			ISharedImages sharedImages = PlatformUI.getWorkbench().getSharedImages();
+			itemDelete.setImage(sharedImages.getImageDescriptor(ISharedImages.IMG_TOOL_DELETE).createImage());
+			itemDelete.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					deleteSelectedConfigurations();
+				}
+			});
+
+			return new PopupMenuBuilder(natTable, menu).build();
+		}
+
+		private void deleteSelectedConfigurations() {
+			Set<Range> selectedRowRanges = selectionLayer.getSelectedRowPositions();
+
+			ITestData testData = getTestDataModel();
+
+			// to avoid any internal implementation errors, delete from the end, which makes
+			// algorithm more complex than required
+			List<Integer> selectedRows = new ArrayList<Integer>();
+
+			for (Range range : selectedRowRanges) {
+				for (int r = range.start; r < range.end; r++) {
+					selectedRows.add(Integer.valueOf(r));
+				}
+			}
+
+			Collections.sort(selectedRows);
+			Collections.reverse(selectedRows);
+
+			for (Integer row : selectedRows) {
+				testData.removeConfiguration(testData.getConfigurations()[row.intValue()]);
+			}
+
+			refreshGrid();
+		}
+
+		@Override
+		public void configureUiBindings(UiBindingRegistry uiBindingRegistry) {
+			MouseEventMatcher matcher = new MouseEventMatcher(SWT.NONE, GridRegion.ROW_HEADER, 3) {
+				@Override
+				public boolean matches(NatTable natTable, MouseEvent event, LabelStack regionLabels) {
+					if (!super.matches(natTable, event, regionLabels)) {
+						return false;
+					}
+					Set<Range> selectedRowRanges = selectionLayer.getSelectedRowPositions();
+					return !selectedRowRanges.isEmpty();
+				}
+			};
+			uiBindingRegistry.registerMouseDownBinding(matcher, new RowHeaderPopupMenuAction(contextMenu));
+		}
+	}
+
+	private static class RowHeaderPopupMenuAction implements IMouseAction {
+
+		private final Menu menu;
+
+		public RowHeaderPopupMenuAction(Menu menu) {
+			this.menu = menu;
+		}
+
+		@Override
+		public void run(NatTable natTable, MouseEvent event) {
+			int row = natTable.getRowPositionByY(event.y);
+			// mark which rows it is - subtract 1 because of column header row
+			menu.setData("selectedRow", Integer.valueOf(row - 1));
 			menu.setVisible(true);
 		}
 	}
