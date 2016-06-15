@@ -114,7 +114,12 @@ public class ClipboardUtil {
 			o = clipboard.getContents(CsvTransfer.instance);
 			if (o instanceof String) {
 				try {
-					cf = ClipboardFormat.fromCsv(o.toString());
+					String csvData = o.toString();
+					// Excel adds a NULL byte
+					if (csvData.charAt(csvData.length() - 1) == 0) {
+						csvData = csvData.substring(0, csvData.length() - 1);
+					}
+					cf = ClipboardFormat.fromCsv(csvData);
 				}
 				catch (IOException e) {
 					// ignore; cancel paste
@@ -411,7 +416,7 @@ public class ClipboardUtil {
 		}
 
 		private static ClipboardFormat fromCsv(String csvData) throws IOException {
-			CSVLineIterator iter = new CSVLineIterator(new StringReader(csvData), ';');
+			CSVLineIterator iter = new CSVLineIterator(new StringReader(csvData), ';', false);
 			DataContainer<String[]> data = new DataContainer<String[]>();
 
 			ClipboardFormat cf = new ClipboardFormat();
@@ -433,6 +438,7 @@ public class ClipboardUtil {
 				cf.numRows++;
 			}
 
+			iter.close();
 			return cf;
 		}
 

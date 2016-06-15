@@ -73,12 +73,7 @@
 								<artifactItem>
 									<groupId>org.databene</groupId>
 									<artifactId>databene-formats</artifactId>
-									<version>1.0.3</version>
-								</artifactItem>
-								<artifactItem>
-									<groupId>org.databene</groupId>
-									<artifactId>databene-formats</artifactId>
-									<version>1.0.3</version>
+									<version>1.0.11</version>
 								</artifactItem>
 								<artifactItem>
 									<groupId>org.mozilla</groupId>
