@@ -27,11 +27,9 @@
 		<function name="charAt" 
 			description="Returns the character at a specified index (0-based) in a string." 
 			scriptToInsert="'ExampleText'.charAt(0)" />
-		<!-- Not supported in used version of Rhino engine. 
 		<function name="trim" 
 			description="Removes whitespace from both ends of a string." 
 			scriptToInsert="' ExampleText '.trim()" />
-		 -->
 	</category>
 	
 	<category name="Date functions">
