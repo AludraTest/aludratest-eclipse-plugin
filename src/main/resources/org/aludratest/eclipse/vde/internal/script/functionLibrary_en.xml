@@ -68,6 +68,10 @@
 		<function name="format"
 			description="Formats a Date to a string using a given format."
 			scriptToInsert="new Date().format('dd-mmm-yyyy HH:MM')" />
+		<function name="timetravel"
+			description="Applies AludraTest's TimeTravel functionality on a given Date value. Requires AludraTest 3.1.0 or newer."
+			scriptToInsert="timetravel(new Date())" />
+		
 	</category>
 	
 	<category name="Mathematical functions">

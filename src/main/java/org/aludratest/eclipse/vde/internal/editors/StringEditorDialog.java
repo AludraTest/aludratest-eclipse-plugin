@@ -49,6 +49,8 @@ import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
 public class StringEditorDialog extends TitleAreaDialog {
 
@@ -422,6 +424,8 @@ public class StringEditorDialog extends TitleAreaDialog {
 
 		Map<String, ScriptLibrary> libs = new HashMap<String, ScriptLibrary>();
 		libs.put("default", new DefaultScriptLibrary());
+		// add Timetravel via our own implementation - this would allow for a configuration value for timetravel within eclipse
+		libs.put("timetravel", timetravelScriptLibrary);
 
 		setVariableValueInObject(provider, "scriptLibraries", libs);
 		return provider;
@@ -528,5 +532,14 @@ public class StringEditorDialog extends TitleAreaDialog {
 		// will fall back to default (Locale.US) in evaluation
 		return null;
 	}
+
+	private static ScriptLibrary timetravelScriptLibrary = new ScriptLibrary() {
+		@Override
+		public void addFunctionsToContext(Context context, Scriptable scope) {
+			context.evaluateString(scope,
+					"if (typeof(timetravel) === 'undefined') { function timetravel(date) { return date; } }", "jsTimetravel", 1,
+					null);
+		}
+	};
 
 }
