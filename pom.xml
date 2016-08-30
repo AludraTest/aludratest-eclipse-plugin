@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.aludratest.eclipse</groupId>
 	<artifactId>org.aludratest.eclipse.vde</artifactId>
-	<version>0.6.6.qualifier</version>
+	<version>0.6.7.qualifier</version>
 	<name>AludraTest Eclipse Visual Data Editor</name>
 	<description>Visual Data Editor Plug-In for Eclipse IDE.</description>
 
