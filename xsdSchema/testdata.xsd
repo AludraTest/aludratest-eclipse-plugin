@@ -65,6 +65,7 @@
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="ignored" type="xs:boolean"/>
     <xs:attribute name="ignoredReason" type="xs:string"/>
+    <xs:attribute name="externalTestId" type="xs:string"/>
   </xs:complexType>
 
   <xs:complexType name="testDataConfigurationSegment">

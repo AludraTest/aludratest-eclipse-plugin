@@ -139,6 +139,17 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			}
 		});
 		tiIgnore.setEnabled(false);
+		
+		final ToolItem tiExternalTestId = new ToolItem(toolbar, SWT.CHECK);
+		tiExternalTestId.setImage(VdeImage.FUNCTION.getImage());
+		tiExternalTestId.setToolTipText("External Test Id Configuration");
+		tiExternalTestId.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleExternalTestIdConfiguration();
+			}
+		});
+		tiExternalTestId.setEnabled(false);
 
 		cvConfig.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -156,6 +167,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				boolean ignore = !sel.isEmpty() && (obj instanceof TestDataConfiguration)
 						&& ((TestDataConfiguration) obj).isIgnored();
 				tiIgnore.setSelection(ignore);
+				tiExternalTestId.setEnabled(!sel.isEmpty());
 				tiDuplicate.setEnabled(!sel.isEmpty());
 			}
 		});
@@ -333,6 +345,23 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		}
 
 		return false;
+	}
+	
+	private void handleExternalTestIdConfiguration() {
+		ITestDataConfiguration config = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
+				.getFirstElement();
+		if (config != null) {
+			InputDialog dlg = new InputDialog(getEditorSite().getShell(), "External Test Id Configuration",
+					"Please enter the ExternalTestId for the Test Data Configuration", "", createConfigNameValidator(false));
+			if (dlg.open() != InputDialog.OK) {
+				return;
+			}
+
+			String configName = dlg.getValue();
+			config.setExternalTestId(configName);
+			cvConfig.refresh();
+		}
+
 	}
 
 	private IInputValidator createConfigNameValidator(boolean edit) {

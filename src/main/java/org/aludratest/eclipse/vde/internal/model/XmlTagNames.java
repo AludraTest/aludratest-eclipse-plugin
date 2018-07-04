@@ -51,5 +51,7 @@ public interface XmlTagNames {
 	public static final String IGNORED = "ignored";
 
 	public static final String IGNORED_REASON = "ignoredReason";
+	
+	public static final String EXTERNAL_TEST_ID = "externalTestId";
 
 }
