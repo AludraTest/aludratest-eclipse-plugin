@@ -352,7 +352,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				.getFirstElement();
 		if (config != null) {
 			InputDialog dlg = new InputDialog(getEditorSite().getShell(), "External Test ID Configuration",
-					"Please enter the external test ID for the Test Data Configuration", "",createExternalTestIDValidator());
+					"Please enter the external test ID for the Test Data Configuration", "",null);
 			if (dlg.open() != InputDialog.OK) {
 				return;
 			}
@@ -379,22 +379,6 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 
 		return new ConfigNameValidator(disallowedNames);
 	}
-	
-	private IInputValidator createExternalTestIDValidator() {
-		List<String> disallowedIDs = new ArrayList<String>();
-		ITestDataConfiguration[] configs = getEditor().getTestDataModel().getConfigurations();
-
-		ITestDataConfiguration selConfig = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
-				.getFirstElement();
-
-		for (ITestDataConfiguration config : configs) {
-			if (!config.equals(selConfig)) {
-				disallowedIDs.add(config.getExternalTestId());
-			}
-		}
-
-		return new ExternalTestIDValidator(disallowedIDs);
-	}
 
 	private static class TestDataConfigurationLabelProvider extends LabelProvider {
 		@Override
@@ -405,32 +389,6 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			return super.getText(element);
 		}
 	}
-
-	static class ExternalTestIDValidator implements IInputValidator {
-
-		private List<String> disallowedIDs;
-
-		public ExternalTestIDValidator(List<String> disallowedIDs) {
-			// no copy constructor as this is all internal and under our control
-			this.disallowedIDs = disallowedIDs;
-		}
-
-		@Override
-		public String isValid(String newText) {
-			if (newText == null || newText.length() == 0) {
-				return "Please enter a value.";
-			}
-			if (newText.trim().length() != newText.length()) {
-				return "Please do not begin or end with a space.";
-			}
-
-			if (disallowedIDs.contains(newText)) {
-				return "There already exists a configuration with this ID";
-			}
-
-			return null;
-		}
-	};
 	
 	static class ConfigNameValidator implements IInputValidator {
 
