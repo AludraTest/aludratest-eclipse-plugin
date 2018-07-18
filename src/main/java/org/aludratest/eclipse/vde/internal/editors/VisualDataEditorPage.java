@@ -140,9 +140,9 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 		});
 		tiIgnore.setEnabled(false);
 		
-		final ToolItem tiExternalTestId = new ToolItem(toolbar, SWT.CHECK);
-		tiExternalTestId.setImage(VdeImage.FUNCTION.getImage());
-		tiExternalTestId.setToolTipText("External Test Id Configuration");
+		final ToolItem tiExternalTestId = new ToolItem(toolbar, SWT.PUSH);
+		tiExternalTestId.setImage(VdeImage.HTML_LINK.getImage());
+		tiExternalTestId.setToolTipText("External Test ID Configuration");
 		tiExternalTestId.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
