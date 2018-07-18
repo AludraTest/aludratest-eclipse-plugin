@@ -17,5 +17,9 @@ public interface ITestDataConfiguration {
 	public String getIgnoredReason();
 
 	public void setIgnoredReason(String reason);
+	
+	public String getExternalTestId();
+	
+	public void setExternalTestId(String externalTestId);
 
 }

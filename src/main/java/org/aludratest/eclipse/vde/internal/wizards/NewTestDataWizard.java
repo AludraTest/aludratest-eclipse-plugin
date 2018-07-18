@@ -302,7 +302,7 @@ public class NewTestDataWizard extends Wizard implements INewWizard {
 			writer.writeNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 			writer.writeAttribute("xsi", "http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",
 					"http://aludratest.org/testdata http://aludratest.github.io/aludratest/schema/draft/testdata.xsd");
-			writer.writeAttribute("version", "1.0");
+			writer.writeAttribute("version", "1.1");
 			writer.writeCharacters(newline);
 			writer.writeStartElement("metadata");
 			writer.writeEndElement();

@@ -139,6 +139,17 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			}
 		});
 		tiIgnore.setEnabled(false);
+		
+		final ToolItem tiExternalTestId = new ToolItem(toolbar, SWT.PUSH);
+		tiExternalTestId.setImage(VdeImage.HTML_LINK.getImage());
+		tiExternalTestId.setToolTipText("External Test ID Configuration");
+		tiExternalTestId.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				handleExternalTestIdConfiguration();
+			}
+		});
+		tiExternalTestId.setEnabled(false);
 
 		cvConfig.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -156,6 +167,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 				boolean ignore = !sel.isEmpty() && (obj instanceof TestDataConfiguration)
 						&& ((TestDataConfiguration) obj).isIgnored();
 				tiIgnore.setSelection(ignore);
+				tiExternalTestId.setEnabled(!sel.isEmpty());
 				tiDuplicate.setEnabled(!sel.isEmpty());
 			}
 		});
@@ -334,6 +346,23 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 
 		return false;
 	}
+	
+	private void handleExternalTestIdConfiguration() {
+		ITestDataConfiguration config = (ITestDataConfiguration) ((IStructuredSelection) cvConfig.getSelection())
+				.getFirstElement();
+		if (config != null) {
+			InputDialog dlg = new InputDialog(getEditorSite().getShell(), "External Test ID Configuration",
+					"Please enter the external test ID for the Test Data Configuration", "",null);
+			if (dlg.open() != InputDialog.OK) {
+				return;
+			}
+
+			String configName = dlg.getValue();
+			config.setExternalTestId(configName);
+			cvConfig.refresh();
+		}
+
+	}
 
 	private IInputValidator createConfigNameValidator(boolean edit) {
 		List<String> disallowedNames = new ArrayList<String>();
@@ -360,7 +389,7 @@ public class VisualDataEditorPage extends AbstractTestEditorFormPage {
 			return super.getText(element);
 		}
 	}
-
+	
 	static class ConfigNameValidator implements IInputValidator {
 
 		private List<String> disallowedNames;
